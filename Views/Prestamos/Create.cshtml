@@ -1,0 +1,106 @@
+﻿@model SistemaBiblioteca.Models.Prestamo
+
+@{
+    ViewData["Title"] = "Registrar Préstamo";
+    var material = ViewBag.Material as SistemaBiblioteca.Models.MaterialBibliografico;
+}
+
+<h2 class="mb-4">📖 Registrar Préstamo</h2>
+
+@if (material == null)
+{
+    <div class="alert alert-danger" role="alert">
+        ❌ Libro no encontrado o no seleccionado.
+    </div>
+}
+else
+{
+    @* Alerta si no hay existencias *@
+    @if (material.Cantidad <= 0)
+    {
+        <div class="alert alert-warning" role="alert">
+            ⚠️ No hay existencias disponibles para este libro. No se puede continuar con el préstamo.
+        </div>
+    }
+
+    @* Mostramos errores de validación en una sola alerta *@
+    @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+    {
+        <div class="alert alert-danger" role="alert">
+            <ul class="mb-0">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors).Distinct())
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Info del libro -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">📚 Libro seleccionado:</h5>
+                    <p><strong>Título:</strong> @material.Titulo</p>
+                    <p><strong>Autor:</strong> @material.Autor</p>
+                    <p><strong>Cantidad disponible:</strong> @material.Cantidad</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario -->
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <input type="hidden" asp-for="MaterialBibliograficoId" />
+
+                        <div class="mb-3">
+                            <label asp-for="NombreNino" class="form-label">Nombre del niño/a</label>
+                            <input asp-for="NombreNino" class="form-control" disabled="@(material.Cantidad <= 0)" />
+                            <span asp-validation-for="NombreNino" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ApellidoNino" class="form-label">Apellido del niño/a</label>
+                            <input asp-for="ApellidoNino" class="form-control" disabled="@(material.Cantidad <= 0)" />
+                            <span asp-validation-for="ApellidoNino" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="GradoNino" class="form-label">Grado</label>
+                            <select asp-for="GradoNino" class="form-select" disabled="@(material.Cantidad <= 0)">
+                                <option value="">-- Seleccionar grado --</option>
+                                @foreach (var grado in (List<string>)ViewBag.Grados)
+                                {
+                                    <option value="@grado" selected="@(Model?.GradoNino == grado ? "selected" : null)">@grado</option>
+                                }
+                            </select>
+                            <span asp-validation-for="GradoNino" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de préstamo:</label>
+                            <input type="text" class="form-control" value="@DateTime.Now.ToShortDateString()" disabled />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Fecha límite de devolución (15 días):</label>
+                            <input type="text" class="form-control" value="@DateTime.Now.AddDays(15).ToShortDateString()" disabled />
+                        </div>
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="submit" class="btn btn-primary flex-fill" @(material.Cantidad <= 0 ? "disabled" : "")>✅ Confirmar préstamo</button>
+                            <button type="button" class="btn btn-secondary flex-fill" onclick="history.back()">⬅️ Volver</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

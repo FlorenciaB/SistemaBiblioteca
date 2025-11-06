@@ -1,0 +1,58 @@
+﻿@model SistemaBiblioteca.Models.MiCuentaResumenViewModel
+
+@{
+    ViewData["Title"] = "Resumen de Mi Cuenta";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-sm rounded-3 mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">👤 Mi Cuenta</h3>
+            <a asp-page="/Account/Manage/ChangePassword" class="btn btn-light btn-sm">
+                🔑 Cambiar contraseña
+            </a>
+        </div>
+
+        <div class="card-body">
+            <table class="table table-borderless mb-4">
+                <tbody>
+                    <tr>
+                        <th scope="row">📧 Email:</th>
+                        <td>@Model.Email</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">👤 Nombre de usuario:</th>
+                        <td>@Model.UserName</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">🛡️ Roles:</th>
+                        <td>
+                            @foreach (var rol in Model.Roles)
+                            {
+                                <span class="badge bg-primary me-1">@rol</span>
+                            }
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            @if (Model.LibrosPrestados != null && Model.LibrosPrestados.Any())
+            {
+                <h4 class="mb-3">📚 Libros Prestados</h4>
+                <ul class="list-group">
+                    @foreach (var libro in Model.LibrosPrestados)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            @libro
+                            <span class="badge bg-warning text-dark rounded-pill">Prestado</span>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="text-muted">No tenés libros prestados actualmente.</p>
+            }
+        </div>
+    </div>
+</div>

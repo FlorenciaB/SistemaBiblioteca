@@ -1,0 +1,27 @@
+﻿@{
+    ViewData["Title"] = "Enlace de recuperación";
+}
+
+<div class="container mt-5 text-center">
+    <div class="card shadow rounded-4 p-4">
+        <h3 class="text-primary mb-3">🔗 Enlace generado</h3>
+        <p>Copiá o hacé clic en el siguiente enlace para restablecer tu contraseña:</p>
+
+        @if (TempData["ResetLink"] != null)
+        {
+            <a href="@TempData["ResetLink"]" class="btn btn-outline-primary mt-3">
+                Restablecer contraseña
+            </a>
+        }
+        else
+        {
+            <div class="alert alert-danger mt-3">
+                Ocurrió un error al generar el enlace.
+            </div>
+        }
+
+        <div class="mt-4">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Volver al inicio</a>
+        </div>
+    </div>
+</div>

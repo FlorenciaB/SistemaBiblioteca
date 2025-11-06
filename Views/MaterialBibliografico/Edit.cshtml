@@ -1,0 +1,352 @@
+﻿@model SistemaBiblioteca.Models.MaterialBibliografico
+
+@{
+    ViewData["Title"] = "Editar Libro";
+    var grados = ViewBag.Grados as List<string> ?? new List<string>();
+    var aulas = ViewBag.Aulas as List<string> ?? new List<string>();
+}
+
+<h2 class="mb-4">✏️ Editar Libro</h2>
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <ul>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="row">
+        <!-- Datos Generales -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">Datos Generales</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="NumeroCatalogo" class="form-label"></label>
+                        <input asp-for="NumeroCatalogo" class="form-control" />
+                        <span asp-validation-for="NumeroCatalogo" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Titulo" class="form-label"></label>
+                        <input asp-for="Titulo" class="form-control" />
+                        <span asp-validation-for="Titulo" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Autor" class="form-label"></label>
+                        <input asp-for="Autor" class="form-control" />
+                        <span asp-validation-for="Autor" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Editorial" class="form-label"></label>
+                        <input asp-for="Editorial" class="form-control" />
+                        <span asp-validation-for="Editorial" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="AnioEdicion" class="form-label"></label>
+                        <input asp-for="AnioEdicion" class="form-control" type="number" min="0" />
+                        <span asp-validation-for="AnioEdicion" class="text-danger"></span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Clasificación -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">Clasificación</div>
+                <div class="card-body">
+                    <!-- Materia -->
+                    <div class="mb-3">
+                        <label asp-for="Materias" class="form-label"></label>
+                        <select asp-for="Materias" class="form-control" id="materiaSelect">
+                            <option value="">Seleccioná una materia</option>
+                            <option value="Ciencias Naturales">Ciencias Naturales</option>
+                            <option value="Ciencias Naturales y Tecnología">Ciencias Naturales y Tecnología</option>
+                            <option value="Ciencias Sociales">Ciencias Sociales</option>
+                            <option value="Educación Artística: Música">Educación Artística: Música</option>
+                            <option value="Educación Artística: Plástica">Educación Artística: Plástica</option>
+                            <option value="Educación Física">Educación Física</option>
+                            <option value="Educación Sexual Integral">Educación Sexual Integral</option>
+                            <option value="Formación Ética y Ciudadana">Formación Ética y Ciudadana</option>
+                            <option value="Historia">Historia</option>
+                            <option value="Inglés">Inglés</option>
+                            <option value="Lengua">Lengua</option>
+                            <option value="Matemática">Matemática</option>
+                            <option value="Tecnología">Tecnología</option>
+                        </select>
+                        <span asp-validation-for="Materias" class="text-danger"></span>
+                    </div>
+
+                    <div id="materiasSeleccionadas" class="mt-2 d-flex flex-wrap gap-2"></div>
+                    <input type="hidden" name="Materias" id="materiasHidden" />
+
+                    <!-- Submateria de Lengua -->
+                    <div class="mb-3" id="submateriaLenguaGroup" style="@(Model.Materias != null && Model.Materias.Contains("Lengua") ? "display:block;" : "display:none;")">
+                        <label>Submateria de Lengua</label><br />
+                        <div class="form-check">
+                            <input type="radio" asp-for="SubmateriaLengua" value="Literatura" class="form-check-input" />
+                            <label class="form-check-label">Literatura</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="radio" asp-for="SubmateriaLengua" value="Ortografía" class="form-check-input" />
+                            <label class="form-check-label">Ortografía</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="radio" asp-for="SubmateriaLengua" value="Sólo Lengua" class="form-check-input" />
+                            <label class="form-check-label">Sólo Lengua</label>
+                        </div>
+                    </div>
+
+                    <!-- Tipo de soporte -->
+                    <div class="mb-3">
+                        <label asp-for="TipoSoporte" class="form-label"></label>
+                        <select asp-for="TipoSoporte" class="form-control" id="soporteSelect">
+                            <option value="">Seleccioná un tipo de soporte</option>
+                            <option value="Libro">Libro</option>
+                            <option value="Revista">Revista</option>
+                            <option value="Atlas">Atlas</option>
+                            <option value="Enciclopedia">Enciclopedia</option>
+                            <option value="Videoteca">Videoteca</option>
+                            <option value="Material Didáctico">Material Didáctico</option>
+                            <option value="Colección">Colección</option>
+                            <option value="Diccionario">Diccionario</option>
+                            <option value="Mapoteca">Mapoteca</option>
+                        </select>
+                        <span asp-validation-for="TipoSoporte" class="text-danger"></span>
+                    </div>
+
+                    <!-- Subtipo de libro -->
+                    <div class="mb-3" id="subtipoLibroGroup" style="@(Model.TipoSoporte == "Libro" ? "display:block;" : "display:none;")">
+                        <label>Tipo de Libro</label><br />
+                        <div class="form-check">
+                            <input type="radio" name="SubtipoSoporteLibro" value="Manual" class="form-check-input" @(Model.SubtipoSoporteLibro == "Manual" ? "checked" : "") />
+                            <label class="form-check-label">Manual</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="radio" name="SubtipoSoporteLibro" value="Áreas Integradas" class="form-check-input" @(Model.SubtipoSoporteLibro == "Áreas Integradas" ? "checked" : "") />
+                            <label class="form-check-label">Áreas Integradas</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="radio" name="SubtipoSoporteLibro" value="Sólo Libro" class="form-check-input" @(Model.SubtipoSoporteLibro == "Sólo Libro" ? "checked" : "") />
+                            <label class="form-check-label">Sólo Libro</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">Clasificación</div>
+                <div class="card-body">
+                    <!-- Grados (checkboxes con selección múltiple) -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <label>Seleccioná los grados</label>
+
+                        </div>
+                        <div class="card-body">
+                            @foreach (var grado in ViewBag.Grados as List<string> ?? new List<string>())
+                            {
+                                var isChecked = Model.Grados != null && Model.Grados.Contains(grado);
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="Grados" value="@grado" @(isChecked ? "checked" : "") />
+                                    <label class="form-check-label">@grado</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">Clasificación</div>
+                <div class="card-body">
+                    <!-- Ubicación -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <label for="ubicacionSelect" class="control-label">Ubicación del material</label>
+                        </div>
+                        <div class="card-body">
+                            <select asp-for="Ubicacion" class="form-control" id="ubicacionSelect">
+                                <option value="">Seleccioná la ubicación</option>
+                                <option value="Biblioteca" selected="@(Model.Ubicacion == "Biblioteca" ? "selected" : null)" asp-disable="true">Biblioteca</option>
+                                <option value="Aula" selected="@(Model.Ubicacion == "Aula" ? "selected" : null)" asp-disable="true">Aula</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Aulas (solo si se elige "Aula") -->
+                    <div class="card mb-3" id="aulasGroup" style="display:@(Model.Ubicacion == "Aula" ? "block" : "none")">
+                        <div class="card-header">
+                            <label>Seleccioná aula/s</label>
+                        </div>
+                        <div class="card-body">
+                            @foreach (var aula in ViewBag.Aulas as List<string> ?? new List<string>())
+                            {
+                                var isChecked = Model.Aulas != null && Model.Aulas.Contains(aula);
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="Aulas" value="@aula" @(isChecked ? "checked" : "") />
+                                    <label class="form-check-label">@aula</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estado y Cantidad -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">Estado y Cantidad</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="Cantidad" class="form-label"></label>
+                        <input asp-for="Cantidad" class="form-control" type="number" min="0" />
+                        <span asp-validation-for="Cantidad" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Procedencia" class="form-label"></label>
+                        <select asp-for="Procedencia" class="form-control">
+                            <option value="">Seleccioná procedencia</option>
+                            <option value="MinisterioNacion">Ministerio de Educación de la Nación</option>
+                            <option value="MinisterioProvincia">Ministerio de Educación de la Provincia</option>
+                            <option value="Cooperadora">Cooperadora</option>
+                            <option value="Donacion">Donación</option>
+                        </select>
+                        <span asp-validation-for="Procedencia" class="text-danger"></span>
+                    </div>
+
+
+                    <div class="mb-3">
+                        <label asp-for="Estado" class="form-label"></label>
+                        <select asp-for="Estado" class="form-control">
+                            <option value="">--Seleccione--</option>
+                            <option value="Disponible" selected="@(Model.Estado == "Disponible" ? "selected" : null)">Disponible</option>
+                            <option value="Prestado" selected="@(Model.Estado == "Prestado" ? "selected" : null)">Prestado</option>
+                        </select>
+                        <span asp-validation-for="Estado" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="FechaAlta" class="form-label"></label>
+                        <input asp-for="FechaAlta" class="form-control" type="date" />
+                        <span asp-validation-for="FechaAlta" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="FechaBaja" class="form-label"></label>
+                        <input asp-for="FechaBaja" class="form-control" type="date" />
+                        <span asp-validation-for="FechaBaja" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">💾 Guardar Cambios</button>
+    <button type="button" class="btn btn-secondary" onclick="history.back()">⬅️ Volver</button>
+</form>
+
+<style>
+    .materia-badge {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+        color: #575756
+    }
+
+        .materia-badge svg {
+            cursor: pointer;
+            margin-left: 0.4rem;
+            color: #0d6efd;
+            transition: 0.2s;
+        }
+
+            .materia-badge svg:hover {
+                color: #084298;
+            }
+</style>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.getElementById("materiaSelect").addEventListener("change", function () {
+            var selected = this.value;
+            document.getElementById("submateriaLenguaGroup").style.display = selected === "Lengua" ? "block" : "none";
+        });
+
+        document.getElementById("soporteSelect").addEventListener("change", function () {
+            var selected = this.value;
+            document.getElementById("subtipoLibroGroup").style.display = selected === "Libro" ? "block" : "none";
+        });
+
+        // Mostrar/ocultar aulas según ubicación
+        document.getElementById("ubicacionSelect").addEventListener("change", function () {
+            var aulasGroup = document.getElementById("aulasGroup");
+            aulasGroup.style.display = this.value === "Aula" ? "block" : "none";
+        });
+
+            const materiaSelect = document.getElementById("materiaSelect");
+        const contenedorMaterias = document.getElementById("materiasSeleccionadas");
+        const hiddenInput = document.getElementById("materiasHidden");
+        let materiasSeleccionadas = [];
+
+        // 🟢 Si el modelo tiene materias ya guardadas, las cargamos
+        document.addEventListener("DOMContentLoaded", () => {
+            const inicial = hiddenInput.value;
+            if (inicial) {
+                // Si vienen separadas por coma, las convertimos a lista
+                materiasSeleccionadas = inicial.split(",").map(m => m.trim());
+                actualizarVista();
+            }
+        });
+
+        materiaSelect.addEventListener("change", function () {
+            const materia = this.value;
+            if (materia && !materiasSeleccionadas.includes(materia)) {
+                materiasSeleccionadas.push(materia);
+                actualizarVista();
+            }
+            this.value = ""; // Resetear select
+        });
+
+        function eliminarMateria(materia) {
+            materiasSeleccionadas = materiasSeleccionadas.filter(m => m !== materia);
+            actualizarVista();
+        }
+
+        function actualizarVista() {
+            contenedorMaterias.innerHTML = "";
+            materiasSeleccionadas.forEach(materia => {
+                const badge = document.createElement("span");
+                badge.classList.add("badge", "d-flex", "align-items-center", "text-primary-emphasis", "bg-primary-subtle", "border", "border-primary-subtle", "rounded-pill", "materia-badge");
+                badge.innerHTML = `
+                    <span class="px-1">${materia}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" onclick="eliminarMateria('${materia}')">
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
+                    </svg>
+                `;
+                contenedorMaterias.appendChild(badge);
+            });
+            hiddenInput.value = materiasSeleccionadas.join(", ");
+        }
+    </script>
+}

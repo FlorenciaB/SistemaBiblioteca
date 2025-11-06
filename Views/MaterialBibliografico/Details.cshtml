@@ -1,0 +1,114 @@
+﻿@model SistemaBiblioteca.Models.MaterialBibliografico
+
+@{
+    ViewData["Title"] = "Detalles del Libro";
+}
+
+<h2 class="mb-4">📖 Detalles del Libro</h2>
+
+<div class="row">
+    <!-- Datos Generales -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                Datos Generales
+            </div>
+            <div class="card-body">
+                <p><strong>N° Catálogo:</strong> @Model.NumeroCatalogo</p>
+                <p><strong>Título:</strong> @Model.Titulo</p>
+                <p><strong>Autor:</strong> @Model.Autor</p>
+                <p><strong>Editorial:</strong> @Model.Editorial</p>
+                <p><strong>Año de Edición:</strong> @Model.AnioEdicion</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clasificación -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                Clasificación
+            </div>
+            <div class="card-body">
+                <p>
+                    <strong>Materia:</strong>@(Model.Materias != null && Model.Materias.Any()
+                                        ? string.Join(", ", Model.Materias)
+                                        : "—")
+                </p>
+                <p><strong>Submateria (Lengua):</strong> @Model.SubmateriaLengua</p>
+                <p><strong>Tipo de Soporte:</strong> @Model.TipoSoporte</p>
+                <p><strong>Subtipo:</strong> @Model.SubtipoSoporteLibro</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ubicación y Asignación -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                Ubicación y Asignación
+            </div>
+            <div class="card-body">
+                <p><strong>Ubicación:</strong> @Model.Ubicacion</p>
+
+                <p>
+                    <strong>Grados/Ciclos:</strong><br />
+                    @if (!string.IsNullOrEmpty(Model.Grado))
+                    {
+                        foreach (var grado in Model.Grado.Split(", "))
+                        {
+                            <span class="badge bg-secondary me-1">@grado</span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-muted">No asignado</span>
+                    }
+                </p>
+
+                <p>
+                    <strong>Aulas:</strong><br />
+                    @if (!string.IsNullOrEmpty(Model.LibroAula))
+                    {
+                        foreach (var aula in Model.LibroAula.Split(", "))
+                        {
+                            <span class="badge bg-warning text-dark me-1">@aula</span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-muted">No asignadas</span>
+                    }
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estado y Fechas -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                Estado y Fechas
+            </div>
+            <div class="card-body">
+                <p><strong>Cantidad disponible:</strong> @Model.Cantidad</p>
+                <p><strong>Procedencia:</strong> @Model.Procedencia</p>
+                <p><strong>Estado:</strong> <span class="badge @(Model.Estado == "Disponible" ? "bg-success" : "bg-danger")">@Model.Estado</span></p>
+                <p><strong>Fecha de Alta:</strong> @Model.FechaAlta.ToShortDateString()</p>
+                <p>
+                    <strong>Fecha de Baja:</strong>
+                    @if (Model.FechaBaja.HasValue)
+                    {
+                        @Model.FechaBaja.Value.ToShortDateString()
+                    }
+                    else
+                    {
+                        <span class="text-success">En existencia</span>
+                    }
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button type="button" class="btn btn-secondary" onclick="history.back()">⬅️ Volver</button>

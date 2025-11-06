@@ -1,0 +1,50 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+}
+
+<div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-lg border-0 rounded-4 p-4" style="max-width: 420px; width: 100%;">
+        <div class="card-body">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold text-primary mb-2">🔐 Iniciar Sesión</h2>
+                <p class="text-muted mb-0">Ingresá tus credenciales para continuar</p>
+            </div>
+
+            <form id="account" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Email" class="form-control" placeholder="name@example.com" autocomplete="username" aria-required="true" />
+                    <label asp-for="Input.Email">Correo electrónico</label>
+                    <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Password" type="password" class="form-control" placeholder="password" autocomplete="current-password" aria-required="true" />
+                    <label asp-for="Input.Password">Contraseña</label>
+                    <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input asp-for="Input.RememberMe" class="form-check-input" />
+                    <label asp-for="Input.RememberMe" class="form-check-label">Recordarme</label>
+                </div>
+
+                <button id="login-submit" type="submit" class="btn btn-primary w-100 py-2 rounded-3">
+                    Ingresar
+                </button>
+            </form>
+        </div>
+
+        <div class="card-footer bg-white border-0 text-center mt-3">
+            <a asp-controller="Cuenta" asp-action="OlvidePassword" class="text-decoration-none">¿Olvidaste tu contraseña?</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

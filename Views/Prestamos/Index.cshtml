@@ -1,0 +1,110 @@
+﻿@model IEnumerable<SistemaBiblioteca.Models.Prestamo>
+
+@{
+    ViewData["Title"] = "Préstamos";
+    var estadoSeleccionado = ViewBag.EstadoSeleccionado as string;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+}
+
+<div class="container mt-5">
+
+    <h2 class="mb-4">📚 Préstamos</h2>
+
+    <div class="table-responsive">
+        <table id="tablaPrestamos" class="table table-striped table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Título</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Grado</th>
+                    <th>📅 Fecha de Préstamo</th>
+                    <th>⏰ Fecha Límite</th>
+                    <th>📌 Fecha de Devolución</th>
+                    <th>📄 PDF</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var prestamo in Model)
+                {
+                    var isVencido = prestamo.FechaDevolucion == null && prestamo.FechaLimiteDevolucion < DateTime.Now;
+                    <tr class="@(isVencido ? "table-danger" : "")">
+                        <td>@prestamo.MaterialBibliografico?.Titulo</td>
+                        <td>@prestamo.NombreNino</td>
+                        <td>@prestamo.ApellidoNino</td>
+                        <td>@prestamo.GradoNino</td>
+                        <td data-order="@prestamo.FechaPrestamo.Ticks">@prestamo.FechaPrestamo.ToShortDateString()</td>
+                        <td data-order="@prestamo.FechaLimiteDevolucion.Ticks">@prestamo.FechaLimiteDevolucion.ToShortDateString()</td>
+                        <td data-order="@(prestamo.FechaDevolucion?.Ticks ?? long.MaxValue)">
+                            @(prestamo.FechaDevolucion?.ToShortDateString() ?? "Activo")
+                        </td>
+                        <td>
+                            <a class="btn btn-sm btn-primary" asp-controller="ComprobantePrestamoPdf" asp-action="Ver" asp-route-prestamoId="@prestamo.Id" target="_blank">
+                                📄 Ver PDF
+                            </a>
+                        </td>
+                        <td>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                if (prestamo.FechaDevolucion == null)
+                                {
+                                    <button type="button"
+                                            class="btn btn-sm btn-success"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#confirmarModal"
+                                            data-prestamo-id="@prestamo.Id">
+                                        ✅ Devolver
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Devuelto</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="badge @(prestamo.FechaDevolucion == null ? "bg-warning text-dark" : "bg-secondary")">
+                                    @(prestamo.FechaDevolucion == null ? "Activo" : "Devuelto")
+                                </span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+@section Scripts {
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+        <script>
+            $(document).ready(function () {
+                $('#tablaPrestamos').DataTable({
+                    "order": [[5, "asc"]], // ordena por fecha límite al cargar
+                    "columnDefs": [
+                        { "orderable": false, "targets": [7, 8] } // PDF y Acciones no ordenables
+                    ],
+                    "language": {
+                        "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
+                    },
+                    "searching": false
+                });
+            });
+
+            // Modal devolución
+            const modal = document.getElementById('confirmarModal');
+            modal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const prestamoId = button.getAttribute('data-prestamo-id');
+                const form = document.getElementById('formDevolver');
+                form.action = `/Prestamos/Devolver/${prestamoId}`;
+            });
+        </script>
+}
+

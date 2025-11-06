@@ -1,0 +1,71 @@
+﻿@model SistemaBiblioteca.Models.CrearUsuarioViewModel
+
+@{
+    ViewData["Title"] = "Crear Usuario";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">👤 Crear nuevo usuario</h3>
+            <a asp-action="Usuarios" class="btn btn-light btn-sm">⬅️ Volver al listado</a>
+        </div>
+
+        <div class="card-body">
+            <form asp-action="CrearUsuario" method="post" class="needs-validation" novalidate>
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label fw-bold">📧 Email</label>
+                    <input asp-for="Email" class="form-control" placeholder="Ingresá el correo electrónico del usuario" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label fw-bold">🔒 Contraseña</label>
+                    <div class="input-group">
+                        <input asp-for="Password" class="form-control" type="password" id="PasswordInput" placeholder="Ingresá una contraseña segura" />
+                        <span class="input-group-text password-toggle" onclick="togglePassword('PasswordInput', this)">
+                            <i class="bi bi-eye"></i>
+                        </span>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Rol" class="form-label fw-bold">🧩 Rol del usuario</label>
+                    <select asp-for="Rol" class="form-select" asp-items="new SelectList(ViewBag.Roles)">
+                        <option value="">-- Seleccioná un rol --</option>
+                    </select>
+                    <span asp-validation-for="Rol" class="text-danger small"></span>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button type="submit" class="btn btn-success">
+                        ✅ Crear Usuario
+                    </button>
+                    <a asp-action="Usuarios" class="btn btn-secondary">
+                        ❌ Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePassword(inputId, toggleSpan) {
+        const input = document.getElementById(inputId);
+        const icon = toggleSpan.querySelector('i');
+
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = "password";
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    }
+</script>

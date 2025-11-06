@@ -1,0 +1,111 @@
+﻿@model List<SistemaBiblioteca.Models.UserRolViewModel>
+
+@{
+    ViewData["Title"] = "Gestión de Usuarios";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">👥 Gestión de Usuarios</h3>
+            <a asp-action="CrearUsuario" class="btn btn-light btn-sm">
+                ➕ Crear nuevo usuario
+            </a>
+        </div>
+
+        <div class="card-body">
+
+            @* Alertas *@
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ❌ @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    ✅ @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (Model == null || !Model.Any())
+            {
+                <p class="text-muted text-center mt-4">📭 No hay usuarios registrados.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>📧 Email</th>
+                                <th>🧩 Roles</th>
+                                <th>⚙️ Asignar / Quitar Rol</th>
+                                <th>🔐 Bloqueo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var usuario in Model)
+                            {
+                                <tr>
+                                    <td>@usuario.Email</td>
+                                    <td>@string.Join(", ", usuario.Roles)</td>
+                                    <td class="text-nowrap">
+                                        <div class="d-flex flex-column flex-sm-row gap-2">
+                                            <form asp-action="AsignarRol" method="post" class="d-flex gap-2">
+                                                <input type="hidden" name="userId" value="@usuario.UserId" />
+                                                <select name="rol" class="form-select form-select-sm w-auto">
+                                                    <option value="Admin">Admin</option>
+                                                    <option value="Docente">Docente</option>
+                                                    <option value="Alumno">Alumno</option>
+                                                </select>
+                                                <button type="submit" class="btn btn-success btn-sm">
+                                                    ➕ Asignar
+                                                </button>
+                                            </form>
+
+                                            <form asp-action="QuitarRol" method="post" class="d-flex gap-2">
+                                                <input type="hidden" name="userId" value="@usuario.UserId" />
+                                                <select name="rol" class="form-select form-select-sm w-auto">
+                                                    <option value="Admin">Admin</option>
+                                                    <option value="Docente">Docente</option>
+                                                    <option value="Alumno">Alumno</option>
+                                                </select>
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    ➖ Quitar
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                    <td class="text-nowrap">
+                                        <a asp-action="EditarUsuario" asp-route-id="@usuario.UserId" class="btn btn-warning btn-sm me-1">
+                                            ✏️ Editar
+                                        </a>
+
+                                        @if (usuario.EstaBloqueado)
+                                        {
+                                            <form asp-action="Desbloquear" method="post" class="d-inline">
+                                                <input type="hidden" name="id" value="@usuario.UserId" />
+                                                <button class="btn btn-success btn-sm">🔓 Desbloquear</button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <form asp-action="Bloquear" method="post" class="d-inline">
+                                                <input type="hidden" name="id" value="@usuario.UserId" />
+                                                <button class="btn btn-danger btn-sm">🔒 Bloquear</button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

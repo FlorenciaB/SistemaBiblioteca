@@ -1,0 +1,24 @@
+﻿@model SistemaBiblioteca.Models.UserRolViewModel
+
+@{
+    ViewData["Title"] = "Editar usuario";
+}
+
+<h2>Editar usuario</h2>
+
+<form asp-action="EditarUsuario" method="post">
+    <input type="hidden" asp-for="UserId" />
+
+    <div class="form-group">
+        <label>Email</label>
+        <input asp-for="Email" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Nombre de Usuario</label>
+        <input asp-for="UserName" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+    <a asp-action="Usuarios" class="btn btn-secondary">Cancelar</a>
+</form>
