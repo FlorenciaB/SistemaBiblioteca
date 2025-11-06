@@ -149,6 +149,7 @@ namespace SistemaBiblioteca.Controllers
 
             ViewBag.Grados = ObtenerGrados();
             ViewBag.Aulas = ObtenerAulas();
+            ViewBag.MateriasSeleccionadas = string.Join(", ", material.Materias ?? new List<string>());
 
             return View(material);
         }
@@ -423,8 +424,21 @@ namespace SistemaBiblioteca.Controllers
         private string NormalizarProcedencia(string input)
         {
             if (string.IsNullOrEmpty(input)) return input;
-            input = NormalizarTexto(input);
-            if (input.ToLower().Contains("ministerio")) return "Ministerio de la Nación";
+
+            input = NormalizarTexto(input).ToLower();
+
+            if (input.Contains("nacion") || input.Contains("nacional"))
+                return "Ministerio de Educación de la Nación";
+
+            if (input.Contains("provincia") || input.Contains("provincial"))
+                return "Ministerio de Educación de la Provincia";
+
+            if (input.Contains("cooperadora"))
+                return "Cooperadora";
+
+            if (input.Contains("donacion") || input.Contains("donación"))
+                return "Donación";
+
             return input;
         }
 

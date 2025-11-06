@@ -19,7 +19,7 @@ namespace SistemaBiblioteca.Models
         public string? Titulo { get; set; }
 
         [Required(ErrorMessage = "El Autor es obligatorio.")]
-        [RegularExpression("^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ -]+$", ErrorMessage = "Solo se permiten letras.")]
+        [RegularExpression("^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ .-]+$", ErrorMessage = "Solo se permiten letras.")]
         public string? Autor { get; set; }
 
         [Required(ErrorMessage = "La Editorial es obligatoria.")]
