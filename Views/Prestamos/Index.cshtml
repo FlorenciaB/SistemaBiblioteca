@@ -14,6 +14,13 @@
     <h2 class="mb-4">📚 Préstamos</h2>
 
     <div class="table-responsive">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
         <table id="tablaPrestamos" class="table table-striped table-hover align-middle">
             <thead class="table-light">
                 <tr>
@@ -77,6 +84,27 @@
             </tbody>
         </table>
     </div>
+    <div class="modal fade" id="confirmarModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Confirmar devolución</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="mb-0">¿Querés marcar este préstamo como <strong>devuelto</strong>?</p>
+                </div>
+                <div class="modal-footer">
+                    <form id="formDevolver" method="post" asp-controller="Prestamos" asp-action="Devolver">
+                        @Html.AntiForgeryToken()
+                        <!-- El action se completa dinámicamente con el id -->
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Sí, devolver</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
 @section Scripts {
         <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -96,13 +124,12 @@
                     "searching": false
                 });
             });
-
-            // Modal devolución
             const modal = document.getElementById('confirmarModal');
             modal.addEventListener('show.bs.modal', function (event) {
-                const button = event.relatedTarget;
-                const prestamoId = button.getAttribute('data-prestamo-id');
+                const button = event.relatedTarget; // Botón que abrió el modal
+                const prestamoId = button.getAttribute('data-prestamo-id'); // Obtenemos el id
                 const form = document.getElementById('formDevolver');
+                // Seteamos la acción del form dinámicamente
                 form.action = `/Prestamos/Devolver/${prestamoId}`;
             });
         </script>

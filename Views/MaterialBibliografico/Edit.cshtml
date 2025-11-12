@@ -218,14 +218,11 @@
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="Procedencia" class="form-label"></label>
-                        <select asp-for="Procedencia" class="form-control">
-                            <option value="">Seleccioná procedencia</option>
-                            <option value="MinisterioNacion">Ministerio de Educación de la Nación</option>
-                            <option value="MinisterioProvincia">Ministerio de Educación de la Provincia</option>
-                            <option value="Cooperadora">Cooperadora</option>
-                            <option value="Donacion">Donación</option>
+                        <label asp-for="Procedencia" class="control-label"></label>
+                        <select asp-for="Procedencia" class="form-control" asp-items="ViewBag.Procedencias">
+                            <option value="">Seleccioná una opción</option>
                         </select>
+                        <span asp-validation-for="Procedencia" class="text-danger"></span>
                         <span asp-validation-for="Procedencia" class="text-danger"></span>
                     </div>
 

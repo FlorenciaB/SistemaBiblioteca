@@ -1,6 +1,9 @@
 ﻿using ClosedXML.Excel;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SistemaBiblioteca.Data;
 using SistemaBiblioteca.Models;
@@ -151,6 +154,15 @@ namespace SistemaBiblioteca.Controllers
             ViewBag.Aulas = ObtenerAulas();
             ViewBag.MateriasSeleccionadas = string.Join(", ", material.Materias ?? new List<string>());
 
+            ViewBag.Procedencias = new SelectList(new[]
+               {
+                    "Ministerio de Educación de la Nación",
+                    "Cooperadora",
+                    "Donación",
+                    "Compra",
+                    "Otros"
+                }, material.Procedencia);
+
             return View(material);
         }
 
@@ -163,6 +175,15 @@ namespace SistemaBiblioteca.Controllers
 
             ViewBag.Grados = ObtenerGrados();
             ViewBag.Aulas = ObtenerAulas();
+
+            ViewBag.Procedencias = new SelectList(new[]
+            {
+                "Ministerio de Educación de la Nación",
+                "Cooperadora",
+                "Donación",
+                "Compra",
+                "Otros"
+            }, material.Procedencia);
 
             if (string.IsNullOrEmpty(material.Ubicacion))
                 ModelState.AddModelError("Ubicacion", "Debés seleccionar una ubicación.");
@@ -234,7 +255,7 @@ namespace SistemaBiblioteca.Controllers
 
             if (tienePrestamosActivos)
             {
-                TempData["ErrorEliminar"] = "⚠️ Este libro tiene préstamos activos. Solo se puede eliminar una unidad, no todas las existencias.";
+                TempData["ErrorEliminar"] = "⚠️ Este libro tiene préstamos activos. NO LO PODÉS ELIMINAR.";
             }
 
             return View(material);
@@ -287,7 +308,6 @@ namespace SistemaBiblioteca.Controllers
             }
 
             await _context.SaveChangesAsync();
-            TempData["Success"] = "✅ Libro eliminado correctamente.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -295,8 +315,12 @@ namespace SistemaBiblioteca.Controllers
             => _context.MaterialesBibliograficos.Any(e => e.Id == id);
 
         // ===================== IMPORTAR EXCEL =====================
+        // GET: ImportarDesdeExcel
         [HttpGet]
-        public IActionResult ImportarDesdeExcel() => View();
+        public IActionResult ImportarDesdeExcel()
+        {
+            return View();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -337,31 +361,55 @@ namespace SistemaBiblioteca.Controllers
                             var row = hoja.Row(fila);
                             try
                             {
-                                var materiasTexto = row.Cell(6).GetValue<string>();
-                                var materiasLista = materiasTexto
+                                var numeroCatalogo = row.Cell(1).GetValue<string>()?.Trim();
+                                var titulo = row.Cell(2).GetValue<string>()?.Trim();
+                                var autor = row.Cell(3).GetValue<string>()?.Trim();
+                                var editorial = row.Cell(4).GetValue<string>()?.Trim();
+
+                                var anioTexto = row.Cell(5).GetValue<string>()?.Trim();
+                                var anioEdicion = int.TryParse(anioTexto, out int anio) ? anio : 0;
+
+                                var materiasTexto = row.Cell(6).GetValue<string>()?.Trim();
+                                var submateriaLengua = row.Cell(7).GetValue<string>()?.Trim();
+                                var tipoSoporte = row.Cell(8).GetValue<string>()?.Trim();
+                                var subtipoSoporte = row.Cell(9).GetValue<string>()?.Trim();
+
+                                var cantidadTexto = row.Cell(10).GetValue<string>()?.Trim();
+                                var cantidad = int.TryParse(cantidadTexto, out int cant) ? cant : 0;
+
+                                var procedencia = row.Cell(11).GetValue<string>()?.Trim();
+                                var ubicacion = row.Cell(12).GetValue<string>()?.Trim();
+                                var grado = row.Cell(13).GetValue<string>()?.Trim();
+                                var aula = row.Cell(14).GetValue<string>()?.Trim();
+
+                                var fechaAlta = row.Cell(15).IsEmpty() ? DateTime.Now : row.Cell(15).GetDateTime();
+                                var fechaBaja = row.Cell(16).IsEmpty() ? null : row.Cell(16).GetValue<DateTime?>();
+
+                                // Dividir materias separadas por coma
+                                var materiasLista = materiasTexto?
                                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
                                     .Select(m => ToCamelCase(NormalizarTexto(m)))
-                                    .ToList();
+                                    .ToList() ?? new List<string>();
 
                                 var libro = new MaterialBibliografico
                                 {
-                                    NumeroCatalogo = row.Cell(1).GetValue<string>(),
-                                    Titulo = ToCamelCase(NormalizarTexto(row.Cell(2).GetValue<string>())),
-                                    Autor = ToCamelCase(NormalizarTexto(row.Cell(3).GetValue<string>())),
-                                    Editorial = ToCamelCase(NormalizarTexto(row.Cell(4).GetValue<string>())),
-                                    AnioEdicion = row.Cell(5).GetValue<int>(),
+                                    NumeroCatalogo = numeroCatalogo,
+                                    Titulo = ToCamelCase(NormalizarTexto(titulo)),
+                                    Autor = ToCamelCase(NormalizarTexto(autor)),
+                                    Editorial = ToCamelCase(NormalizarTexto(editorial)),
+                                    AnioEdicion = anioEdicion,
                                     Materias = materiasLista,
-                                    SubmateriaLengua = ToCamelCase(NormalizarTexto(row.Cell(7).GetValue<string>())),
-                                    TipoSoporte = ToCamelCase(NormalizarTexto(row.Cell(8).GetValue<string>())),
-                                    SubtipoSoporteLibro = ToCamelCase(NormalizarTexto(row.Cell(9).GetValue<string>())),
-                                    Cantidad = row.Cell(10).GetValue<int>(),
-                                    Procedencia = ToCamelCase(NormalizarProcedencia(row.Cell(11).GetValue<string>())),
-                                    Ubicacion = ToCamelCase(NormalizarTexto(row.Cell(12).GetValue<string>())),
-                                    Grado = row.Cell(13).GetValue<string>(),
-                                    LibroAula = row.Cell(14).GetValue<string>(),
-                                    Estado = row.Cell(10).GetValue<int>() > 0 ? "Disponible" : "Prestado",
-                                    FechaAlta = DateTime.Now,
-                                    FechaBaja = row.Cell(15).IsEmpty() ? null : row.Cell(15).GetValue<DateTime?>()
+                                    SubmateriaLengua = ToCamelCase(NormalizarTexto(submateriaLengua)),
+                                    TipoSoporte = ToCamelCase(NormalizarTexto(tipoSoporte)),
+                                    SubtipoSoporteLibro = ToCamelCase(NormalizarTexto(subtipoSoporte)),
+                                    Cantidad = cantidad,
+                                    Procedencia = ToCamelCase(NormalizarProcedencia(procedencia)),
+                                    Ubicacion = ToCamelCase(NormalizarTexto(ubicacion)),
+                                    Grado = grado,
+                                    LibroAula = aula,
+                                    Estado = cantidad > 0 ? "Disponible" : "Prestado",
+                                    FechaAlta = fechaAlta,
+                                    FechaBaja = fechaBaja
                                 };
 
                                 libros.Add(libro);
@@ -470,11 +518,12 @@ namespace SistemaBiblioteca.Controllers
 
                 // Encabezados
                 var columnas = new string[]
-                {
-            "Autor", "Editorial", "AnioEdicion", "Materia", "SubmateriaLengua",
-            "TipoSoporte", "SubtipoSoporteLibro", "Cantidad", "Procedencia", "Ubicacion",
-            "Grados", "Aulas", "FechaAlta", "FechaBaja"
-                };
+                 {
+                    "N° CATÁLOGO", "Título", "Autor", "Editorial", "Año Edición",
+                    "Materia/s", "Sub Materia Lengua", "Soporte", "Subtipo Soporte",
+                    "Cantidad", "Procedencia", "Ubicación", "Grado/s", "Aulas",
+                    "Fecha Alta", "Fecha Baja"
+                 };
 
                 for (int i = 0; i < columnas.Length; i++)
                 {
@@ -484,9 +533,10 @@ namespace SistemaBiblioteca.Controllers
                 // Fila 2: tipo de dato o guía
                 var tipos = new string[]
                 {
-            "Texto", "Texto", "Número", "Texto", "Texto",
-            "Texto", "Texto", "Número", "Texto", "Texto",
-            "Texto, separados por coma", "Texto, separados por comas", "Fecha DD/MM/AAAA", "Fecha DD/MM/AAAA"
+                    "Texto", "Texto", "Texto", "Texto", "Número", "Texto", "Texto",
+                    "Texto", "Texto", "Número", "Texto", "Texto",
+                    "Texto (separar por comas si son varios)", "Texto (separar por comas si son varios)",
+                    "Fecha (DD/MM/AAAA)", "Fecha (DD/MM/AAAA, opcional)"
                 };
 
                 for (int i = 0; i < tipos.Length; i++)
@@ -496,68 +546,68 @@ namespace SistemaBiblioteca.Controllers
                 }
 
                 // Filas de ejemplo posibles de materias, tipos de soporte, grados y aulas
-                hoja.Cell(3, 4).Value = "CIENCIAS NATURALES";
-                hoja.Cell(3, 6).Value = "LIBROS";
-                hoja.Cell(3, 10).Value = "BIBLIOTECA";
-                hoja.Cell(3, 11).Value = "NIVEL INICIAL";
-                hoja.Cell(3, 12).Value = "ARDILLITAS";
+                hoja.Cell(3, 6).Value = "CIENCIAS NATURALES";
+                hoja.Cell(3, 7).Value = "LIBROS";
+                hoja.Cell(3, 12).Value = "BIBLIOTECA";
+                hoja.Cell(3, 13).Value = "NIVEL INICIAL";
+                hoja.Cell(3, 14).Value = "ARDILLITAS";
 
 
-                hoja.Cell(4, 4).Value = "CIENCIAS NATURALES Y TECNOLOGÍA";
-                hoja.Cell(4, 6).Value = "MANUAL (VA DENTRO DE LIBROS)";
-                hoja.Cell(4, 10).Value = "AULA";
-                hoja.Cell(4, 11).Value = "1°";
-                hoja.Cell(4, 12).Value = "SAN MARTÍN";
+                hoja.Cell(4, 6).Value = "CIENCIAS NATURALES Y TECNOLOGÍA";
+                hoja.Cell(4, 7).Value = "MANUAL (VA DENTRO DE LIBROS)";
+                hoja.Cell(4, 12).Value = "AULA";
+                hoja.Cell(4, 13).Value = "1°";
+                hoja.Cell(4, 14).Value = "SAN MARTÍN";
 
-                hoja.Cell(5, 4).Value = "CIENCIAS SOCIALES";
-                hoja.Cell(5, 6).Value = "ÁREAS INTEGRADAS (VA DENTRO DE LIBROS)";
-                hoja.Cell(5, 11).Value = "2°";
-                hoja.Cell(5, 12).Value = "SARMIENTO";
+                hoja.Cell(5, 6).Value = "CIENCIAS SOCIALES";
+                hoja.Cell(5, 7).Value = "ÁREAS INTEGRADAS (VA DENTRO DE LIBROS)";
+                hoja.Cell(5, 13).Value = "2°";
+                hoja.Cell(5, 14).Value = "SARMIENTO";
 
-                hoja.Cell(6, 4).Value = "EDUCACIÓN ARTÍSTICA: MÚSICA";
-                hoja.Cell(6, 6).Value = "REVISTAS";
-                hoja.Cell(6, 11).Value = "3°";
-                hoja.Cell(6, 12).Value = "MORENO";
+                hoja.Cell(6, 6).Value = "EDUCACIÓN ARTÍSTICA: MÚSICA";
+                hoja.Cell(6, 7).Value = "REVISTAS";
+                hoja.Cell(6, 13).Value = "3°";
+                hoja.Cell(6, 14).Value = "MORENO";
 
-                hoja.Cell(7, 4).Value = "EDUCACIÓN ARTÍSTICA: PLÁSTICA";
-                hoja.Cell(7, 6).Value = "ATLAS";
-                hoja.Cell(7, 11).Value = "4°";
-                hoja.Cell(7, 12).Value = "BELGRANO";
+                hoja.Cell(7, 6).Value = "EDUCACIÓN ARTÍSTICA: PLÁSTICA";
+                hoja.Cell(7, 7).Value = "ATLAS";
+                hoja.Cell(7, 13).Value = "4°";
+                hoja.Cell(7, 14).Value = "BELGRANO";
 
-                hoja.Cell(8, 4).Value = "EDUCACIÓN FÍSICA";
-                hoja.Cell(8, 6).Value = "ENCICLOPEDIAS";
-                hoja.Cell(8, 11).Value = "5°";
+                hoja.Cell(8, 6).Value = "EDUCACIÓN FÍSICA";
+                hoja.Cell(8, 7).Value = "ENCICLOPEDIAS";
+                hoja.Cell(8, 13).Value = "5°";
 
-                hoja.Cell(9, 4).Value = "EDUCACIÓN SEXUAL INTEGRAL";
-                hoja.Cell(9, 6).Value = "VIDEOTECA";
-                hoja.Cell(9, 11).Value = "6°";
+                hoja.Cell(9, 6).Value = "EDUCACIÓN SEXUAL INTEGRAL";
+                hoja.Cell(9, 7).Value = "VIDEOTECA";
+                hoja.Cell(9, 13).Value = "6°";
 
-                hoja.Cell(10, 4).Value = "FORMACIÓN ÉTICA Y CIUDADANA";
-                hoja.Cell(10, 6).Value = "MATERIAL DIDÁCTICO";
-                hoja.Cell(10, 11).Value = "7°";
+                hoja.Cell(10, 6).Value = "FORMACIÓN ÉTICA Y CIUDADANA";
+                hoja.Cell(10, 7).Value = "MATERIAL DIDÁCTICO";
+                hoja.Cell(10, 13).Value = "7°";
 
-                hoja.Cell(11, 4).Value = "HISTORIA";
-                hoja.Cell(11, 6).Value = "COLECCIONES";
-                hoja.Cell(11, 11).Value = "AVANZADO";
+                hoja.Cell(11, 6).Value = "HISTORIA";
+                hoja.Cell(11, 7).Value = "COLECCIONES";
+                hoja.Cell(11, 13).Value = "AVANZADO";
 
-                hoja.Cell(12, 4).Value = "INGLÉS";
-                hoja.Cell(12, 6).Value = "DICCIONARIOS";
-                hoja.Cell(12, 11).Value = "NIVEL PRIMARIO";
+                hoja.Cell(12, 6).Value = "INGLÉS";
+                hoja.Cell(12, 7).Value = "DICCIONARIOS";
+                hoja.Cell(12, 13).Value = "NIVEL PRIMARIO";
 
-                hoja.Cell(13, 4).Value = "LENGUA";
-                hoja.Cell(13, 6).Value = "MAPOTECA (SIN PRÉSTAMO)";
-                hoja.Cell(13, 11).Value = "1ER CICLO";
+                hoja.Cell(13, 6).Value = "LENGUA";
+                hoja.Cell(13, 7).Value = "MAPOTECA (SIN PRÉSTAMO)";
+                hoja.Cell(13, 13).Value = "1ER CICLO";
 
-                hoja.Cell(14, 4).Value = "LITERATURA (VA DENTRO DE LENGUA)";
-                hoja.Cell(14, 11).Value = "2DO CICLO";
+                hoja.Cell(14, 6).Value = "LITERATURA (VA DENTRO DE LENGUA)";
+                hoja.Cell(14, 13).Value = "2DO CICLO";
 
-                hoja.Cell(15, 4).Value = "ORTOGRAFÍA (VA DENTRO DE LENGUA)";
-                hoja.Cell(15, 11).Value = "1ER Y 2DO CICLO";
+                hoja.Cell(15, 6).Value = "ORTOGRAFÍA (VA DENTRO DE LENGUA)";
+                hoja.Cell(15, 13).Value = "1ER Y 2DO CICLO";
 
-                hoja.Cell(16, 4).Value = "MATEMÁTICA";
-                hoja.Cell(16, 11).Value = "2DO CICLO Y 7°";
+                hoja.Cell(16, 6).Value = "MATEMÁTICA";
+                hoja.Cell(16, 13).Value = "2DO CICLO Y 7°";
 
-                hoja.Cell(17, 4).Value = "TECNOLOGÍA";
+                hoja.Cell(17, 6).Value = "TECNOLOGÍA";
 
                 // Ajuste de ancho de columnas automático
                 hoja.Columns().AdjustToContents();
@@ -570,6 +620,168 @@ namespace SistemaBiblioteca.Controllers
                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         "ModeloLibros.xlsx");
                 }
+            }
+        }
+
+        // Obtener cantidad de libros en existencia
+        public async Task<IActionResult> Reportes()
+        {
+            // Total de libros
+            var totalLibros = await _context.MaterialesBibliograficos.SumAsync(m => m.Cantidad);
+
+            // Libros por materia
+            var librosPorMateria = _context.MaterialesBibliograficos
+                .AsEnumerable()
+                .SelectMany(m => m.Materias)
+                .GroupBy(m => m)
+                .Select(g => new { Materia = g.Key, Cantidad = g.Count() })
+                .ToList();
+
+            // Libros por procedencia
+            var librosPorProcedencia = await _context.MaterialesBibliograficos
+                .GroupBy(m => m.Procedencia)
+                .Select(g => new { Procedencia = g.Key, Cantidad = g.Sum(m => m.Cantidad) })
+                .ToListAsync();
+
+            // Préstamos activos
+            var prestamosActivos = await _context.Prestamos.CountAsync(p => p.FechaDevolucion == null);
+
+            // Enviamos todo con ViewBag
+            ViewBag.TotalLibros = totalLibros;
+            ViewBag.LibrosPorMateria = librosPorMateria;
+            ViewBag.LibrosPorProcedencia = librosPorProcedencia;
+            ViewBag.PrestamosActivos = prestamosActivos;
+
+            return View();
+        }
+
+        //Descargar reporte cantidad en Excel
+        public IActionResult ExportarExcel()
+        {
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Reporte Biblioteca");
+
+                worksheet.Cell(1, 1).Value = "Reporte General de Biblioteca";
+                worksheet.Cell(1, 1).Style.Font.Bold = true;
+                worksheet.Cell(1, 1).Style.Font.FontSize = 14;
+                worksheet.Range("A1:D1").Merge().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+                // Títulos
+                worksheet.Cell(3, 1).Value = "Materia";
+                worksheet.Cell(3, 2).Value = "Cantidad";
+                worksheet.Cell(3, 3).Value = "Procedencia";
+                worksheet.Cell(3, 4).Value = "Cantidad por procedencia";
+
+                var row = 4;
+
+                // Libros por materia
+                var librosPorMateria = _context.MaterialesBibliograficos
+                    .AsEnumerable()
+                    .SelectMany(m => m.Materias)
+                    .GroupBy(m => m)
+                    .Select(g => new { Materia = g.Key, Cantidad = g.Count() })
+                    .ToList();
+
+                foreach (var item in librosPorMateria)
+                {
+                    worksheet.Cell(row, 1).Value = item.Materia;
+                    worksheet.Cell(row, 2).Value = item.Cantidad;
+                    row++;
+                }
+
+                row = 4;
+
+                // Libros por procedencia
+                var porProcedencia = _context.MaterialesBibliograficos
+                    .GroupBy(m => m.Procedencia)
+                    .Select(g => new { Procedencia = g.Key, Cantidad = g.Sum(m => m.Cantidad) })
+                    .ToList();
+
+                foreach (var item in porProcedencia)
+                {
+                    worksheet.Cell(row, 3).Value = item.Procedencia;
+                    worksheet.Cell(row, 4).Value = item.Cantidad;
+                    row++;
+                }
+
+                worksheet.Columns().AdjustToContents();
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+                    return File(content,
+                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                "ReporteBiblioteca.xlsx");
+                }
+            }
+        }
+
+        //Descargar reporte cantidad en PDF
+        public IActionResult ExportarPDF()
+        {
+            using (var stream = new MemoryStream())
+            {
+                Document document = new Document(PageSize.A4, 40, 40, 40, 40);
+                PdfWriter.GetInstance(document, stream);
+                document.Open();
+
+                var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16);
+                var sectionFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
+                var textFont = FontFactory.GetFont(FontFactory.HELVETICA, 10);
+
+                document.Add(new Paragraph("📚 Reporte de la Biblioteca\n\n", titleFont));
+
+                // Total libros
+                var totalLibros = _context.MaterialesBibliograficos.Sum(m => m.Cantidad);
+                var prestamosActivos = _context.Prestamos.Count(p => p.FechaDevolucion == null);
+                document.Add(new Paragraph($"Total de libros: {totalLibros}", textFont));
+                document.Add(new Paragraph($"Préstamos activos: {prestamosActivos}\n\n", textFont));
+
+                // Tabla por materia
+                document.Add(new Paragraph("Libros por materia:", sectionFont));
+                var tablaMateria = new PdfPTable(2);
+                tablaMateria.AddCell("Materia");
+                tablaMateria.AddCell("Cantidad");
+
+                var librosPorMateria = _context.MaterialesBibliograficos
+                    .AsEnumerable()
+                    .SelectMany(m => m.Materias)
+                    .GroupBy(m => m)
+                    .Select(g => new { Materia = g.Key, Cantidad = g.Count() })
+                    .ToList();
+
+                foreach (var item in librosPorMateria)
+                {
+                    tablaMateria.AddCell(new Phrase(item.Materia, textFont));
+                    tablaMateria.AddCell(new Phrase(item.Cantidad.ToString(), textFont));
+                }
+
+                document.Add(tablaMateria);
+                document.Add(new Paragraph("\n"));
+
+                // Tabla por procedencia
+                document.Add(new Paragraph("Libros por procedencia:", sectionFont));
+                var tablaProc = new PdfPTable(2);
+                tablaProc.AddCell("Procedencia");
+                tablaProc.AddCell("Cantidad");
+
+                var porProcedencia = _context.MaterialesBibliograficos
+                    .GroupBy(m => m.Procedencia)
+                    .Select(g => new { Procedencia = g.Key, Cantidad = g.Sum(m => m.Cantidad) })
+                    .ToList();
+
+                foreach (var item in porProcedencia)
+                {
+                    tablaProc.AddCell(new Phrase(item.Procedencia ?? "Sin especificar", textFont));
+                    tablaProc.AddCell(new Phrase(item.Cantidad.ToString(), textFont));
+                }
+
+                document.Add(tablaProc);
+
+                document.Close();
+                return File(stream.ToArray(), "application/pdf", "ReporteBiblioteca.pdf");
             }
         }
     }

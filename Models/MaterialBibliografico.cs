@@ -15,11 +15,12 @@ namespace SistemaBiblioteca.Models
         public string? NumeroCatalogo { get; set; }
 
         [Required(ErrorMessage = "El Título de la obra es obligatorio.")]
+        [RegularExpression(@"^[a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ .,:;¡!¿?""'()-]+$", ErrorMessage = "Solo se permiten letras.")]
         [Display(Name = "Título de la Obra")]
         public string? Titulo { get; set; }
 
         [Required(ErrorMessage = "El Autor es obligatorio.")]
-        [RegularExpression("^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ .-]+$", ErrorMessage = "Solo se permiten letras.")]
+        [RegularExpression(@"^[a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ .,:;¡!¿?""'()-]+$", ErrorMessage = "Solo se permiten letras.")]
         public string? Autor { get; set; }
 
         [Required(ErrorMessage = "La Editorial es obligatoria.")]

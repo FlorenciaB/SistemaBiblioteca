@@ -32,6 +32,9 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="MaterialBibliografico" asp-action="ImportarDesdeExcel">Importar desde Excel</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="MaterialBibliografico" asp-action="Reportes">Ver reportes</a>
+                            </li>
 
                         }
                         @if (User.Identity.IsAuthenticated)
@@ -41,7 +44,7 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Prestamos" asp-action="Index">Prestamos</a>
-                            </li>
+                            </li>  
                         }
 
                     </ul>
