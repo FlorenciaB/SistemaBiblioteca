@@ -15,12 +15,12 @@
 }
 
 <div class="mb-4 d-flex flex-wrap gap-2">
-    <a asp-action="ImportarExcel" class="btn btn-success">
-        📄 Importar desde Excel
-    </a>
     <a asp-action="Create" class="btn btn-primary">
         ➕ Crear nuevo libro
     </a>
+    <button type="button" id="btnExportarExcel" class="btn btn-success">
+        📘 Exportar biblioteca completa a Excel
+    </button>
 </div>
 
 <!-- Filtros predictivos -->
@@ -111,6 +111,16 @@
     </table>
 </div>
 
+<div class="modal fade" id="loadingModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center p-4">
+            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
+            <h5 id="loadingMessage">Generando archivo Excel...</h5>
+            <p class="text-muted">Esto puede tardar algunos segundos.</p>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -155,6 +165,39 @@
                 $('#estadoSelect').val('');
                 table.columns().search('').draw();
             });
+        });
+
+                $("#btnExportarExcel").on("click", function () {
+
+            // Mostrar modal
+            var modal = new bootstrap.Modal(document.getElementById('loadingModal'));
+            modal.show();
+
+            // Cambiar mensaje dinámicamente
+            $("#loadingMessage").text("Generando archivo Excel...");
+
+            // Iniciar descarga REAL
+            window.location.href = '@Url.Action("ExportarBibliotecaCompletaExcel", "MaterialBibliografico")';
+
+
+            // 👀 Función que verifica cada 500ms si la cookie apareció
+            let checkCookie = setInterval(function () {
+
+                if (document.cookie.split("; ").includes("excelReady=1")) {
+
+                    $("#loadingMessage").text("Archivo listo. Iniciando descarga...");
+
+                    clearInterval(checkCookie);
+
+                    setTimeout(() => {
+                        modal.hide();
+
+                        // borrar cookie para próximas descargas
+                        document.cookie = "excelReady=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    }, 1000);
+                }
+
+            }, 500);
         });
     </script>
 }

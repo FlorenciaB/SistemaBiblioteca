@@ -31,7 +31,7 @@ namespace SistemaBiblioteca.Models
         public int? AnioEdicion { get; set; }
 
         [Required(ErrorMessage = "La cantidad es obligatoria.")]
-        [Range(0, int.MaxValue, ErrorMessage = "La cantidad no puede ser negativa.")]
+        [Range(0, 9999, ErrorMessage = "La cantidad debe ser entre 0 y 9999.")]
         public int? Cantidad { get; set; }
 
         [Required(ErrorMessage = "La procedencia es obligatoria.")]
@@ -40,7 +40,7 @@ namespace SistemaBiblioteca.Models
         // ✅ Esta es la propiedad que usará EF Core (lista de materias)
         [Required(ErrorMessage = "Debes seleccionar al menos una materia.")]
         [Display(Name = "Materia/s")]
-        public List<string> Materias { get; set; } = new List<string>();
+        public List<string>? Materias { get; set; } = new List<string>();
 
 
         public string? SubmateriaLengua { get; set; }

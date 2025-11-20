@@ -11,10 +11,12 @@
     @RenderSection("Styles", required: false)
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+    <header class="sticky-top">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3 sticky-top">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SistemaBiblioteca</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/logo_biblioteca.png" alt="Logo" style="height:50px;" />
+                </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                 aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -26,26 +28,26 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="MaterialBibliografico" asp-action="Index">Catálogo</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Admin" asp-action="Usuarios">Gestión de Usuarios</a>
-                            </li>
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Prestamos" asp-action="Index">Prestamos</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Cuenta" asp-action="Resumen">Mi cuenta</a>
+                                </li>
+                            }
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="MaterialBibliografico" asp-action="ImportarDesdeExcel">Importar desde Excel</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="MaterialBibliografico" asp-action="Reportes">Ver reportes</a>
                             </li>
-
-                        }
-                        @if (User.Identity.IsAuthenticated)
-                        {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Cuenta" asp-action="Resumen">Resumen</a>
+                                <a class="nav-link text-dark" asp-controller="Admin" asp-action="Usuarios">Gestión de Usuarios</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Prestamos" asp-action="Index">Prestamos</a>
-                            </li>  
                         }
+                        
 
                     </ul>
                     <partial name="_LoginPartial" />
@@ -60,8 +62,11 @@
     </div>
 
     <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - SistemaBiblioteca
+        <div class="container text-center">
+            <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                <img src="~/images/logo_biblioteca_footer.png" alt="Logo" style="height:50px;" />
+            </a>
+            &copy; 2025 - Biblioteca - Escuela 900 - Villa San José
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

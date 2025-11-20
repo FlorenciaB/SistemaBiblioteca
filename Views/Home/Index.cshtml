@@ -1,119 +1,102 @@
 ﻿@model List<SistemaBiblioteca.Models.MaterialBibliografico>
+
 @{
-    ViewData["Title"] = "Inicio";
+    ViewData["Title"] = "Buscar Libros";
 }
 
-<h1 class="text-center mb-4">Buscar Libros</h1>
+<h1 class="text-center mb-4">🔎 Buscar Libros</h1>
 
-<!-- Filtros dinámicos -->
-<div class="mb-4">
-    <div class="row g-2" id="filtros">
-        <div class="col-md-3">
-            <input type="text" id="filtroTitulo" class="form-control" placeholder="Título" />
-        </div>
-        <div class="col-md-3">
-            <input type="text" id="filtroAutor" class="form-control" placeholder="Autor" />
-        </div>
-        <div class="col-md-3">
-            <input type="text" id="filtroMateria" class="form-control" placeholder="Materia" />
-        </div>
-        <div class="col-md-1">
-            <button id="btnReset" class="btn btn-secondary w-100">Limpiar</button>
-        </div>
+<!-- Filtros predictivos -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <label class="form-label">Título:</label>
+        <input type="text" id="filtroTitulo" class="form-control" placeholder="Buscar por título">
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Autor:</label>
+        <input type="text" id="filtroAutor" class="form-control" placeholder="Buscar por autor">
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Materia:</label>
+        <input type="text" id="filtroMateria" class="form-control" placeholder="Buscar por materia">
+    </div>
+    <div class="col-md-2 align-self-end">
+        <button id="btnReset" class="btn btn-secondary w-100">🧹 Limpiar</button>
     </div>
 </div>
 
-<!-- Tabla de resultados -->
 @if (Model != null && Model.Any())
 {
-    <table id="tablaMateriales" class="table table-bordered table-hover">
-        <thead>
-            <tr>
-                <th onclick="ordenarTabla(0)">Título</th>
-                <th onclick="ordenarTabla(1)">Autor</th>
-                <th onclick="ordenarTabla(2)">Materia</th>
-                <th onclick="ordenarTabla(3)">Cantidad disponible</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var libro in Model)
-            {
+    <div class="table-responsive">
+        <table id="tablaMateriales" class="table table-striped table-hover align-middle">
+            <thead class="table-light">
                 <tr>
-                    <td>@libro.Titulo</td>
-                    <td>@libro.Autor</td>
-                    <td>@string.Join(", ", libro.Materias)</td>
-                    <td class="@(libro.Cantidad == 0 ? "text-danger fw-bold" : "")">
-                        @(libro.Cantidad > 0 ? libro.Cantidad.ToString() : "Agotado")
-                    </td>
+                    <th>Título</th>
+                    <th>Autor</th>
+                    <th>Materia</th>
+                    <th>Cantidad disponible</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var libro in Model)
+                {
+                    <tr>
+                        <td>@libro.Titulo</td>
+                        <td>@libro.Autor</td>
+                        <td>@string.Join(", ", libro.Materias)</td>
+                        <td class="fw-bold @(libro.Cantidad == 0 ? "text-danger" : "")">
+                            @(libro.Cantidad > 0 ? libro.Cantidad.ToString() : "❌ Agotado")
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 else
 {
-    <p class="text-muted mt-4">No se encontraron libros con esos criterios.</p>
+    <p class="text-muted mt-4 text-center">No se encontraron libros con esos criterios.</p>
 }
 
-<!-- Scripts para filtrado y ordenamiento -->
-<script>
-    let direccionOrden = {};
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
 
-    function ordenarTabla(columnaIndex) {
-        const tabla = document.getElementById("tablaMateriales");
-        const tbody = tabla.tBodies[0];
-        const filas = Array.from(tbody.rows);
+    <script>
+        $(document).ready(function () {
 
-        direccionOrden[columnaIndex] = !direccionOrden[columnaIndex];
+            var table = $('#tablaMateriales').DataTable({
+                "order": [],
+                "pageLength": 10, // cantidad inicial
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+                "dom": 'lfrtip', // << ACTIVAR SELECTOR DE CANTIDAD
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
+                }
+            });
 
-        filas.sort((a, b) => {
-            let valorA = a.cells[columnaIndex].innerText.trim().toLowerCase();
-            let valorB = b.cells[columnaIndex].innerText.trim().toLowerCase();
+            // Filtros individuales
+            $('#filtroTitulo').on('input', function () {
+                table.column(0).search(this.value).draw();
+            });
 
-            if (!isNaN(valorA) && !isNaN(valorB)) {
-                valorA = parseFloat(valorA);
-                valorB = parseFloat(valorB);
-            }
+            $('#filtroAutor').on('input', function () {
+                table.column(1).search(this.value).draw();
+            });
 
-            if (valorA < valorB) return direccionOrden[columnaIndex] ? -1 : 1;
-            if (valorA > valorB) return direccionOrden[columnaIndex] ? 1 : -1;
-            return 0;
+            $('#filtroMateria').on('input', function () {
+                table.column(2).search(this.value).draw();
+            });
+
+            // Botón limpiar
+            $('#btnReset').on('click', function () {
+                $('#filtroTitulo').val('');
+                $('#filtroAutor').val('');
+                $('#filtroMateria').val('');
+                table.columns().search('').draw();
+            });
         });
-
-        filas.forEach(fila => tbody.appendChild(fila));
-    }
-
-    function filtrarTabla() {
-        const titulo = document.getElementById('filtroTitulo').value.toLowerCase();
-        const autor = document.getElementById('filtroAutor').value.toLowerCase();
-        const materia = document.getElementById('filtroMateria').value.toLowerCase();
-
-        const filas = document.querySelectorAll("#tablaMateriales tbody tr");
-
-        filas.forEach(fila => {
-            const cTitulo = fila.cells[0].innerText.toLowerCase();
-            const cAutor = fila.cells[1].innerText.toLowerCase();
-            const cMateria = fila.cells[2].innerText.toLowerCase();
-
-            const coincide =
-                cTitulo.includes(titulo) &&
-                cAutor.includes(autor) &&
-                cMateria.includes(materia);
-
-            fila.style.display = coincide ? "" : "none"; // 👈 esto es lo que faltaba
-        });
-    }
-
-    // Eventos en tiempo real
-    document.getElementById('filtroTitulo').addEventListener('input', filtrarTabla);
-    document.getElementById('filtroAutor').addEventListener('input', filtrarTabla);
-    document.getElementById('filtroMateria').addEventListener('input', filtrarTabla);
-
-    document.getElementById('btnReset').addEventListener('click', function (e) {
-        e.preventDefault();
-        document.getElementById('filtroTitulo').value = "";
-        document.getElementById('filtroAutor').value = "";
-        document.getElementById('filtroMateria').value = "";
-        filtrarTabla();
-    });
-</script>
+    </script>
+}

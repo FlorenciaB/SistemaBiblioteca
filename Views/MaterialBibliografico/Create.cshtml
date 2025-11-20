@@ -63,10 +63,15 @@
                             <option value="Educación Sexual Integral">Educación Sexual Integral</option>
                             <option value="Formación Ética y Ciudadana">Formación Ética y Ciudadana</option>
                             <option value="Historia">Historia</option>
+                            <option value="Geografía">Geografía</option>
                             <option value="Inglés">Inglés</option>
                             <option value="Lengua">Lengua</option>
                             <option value="Matemática">Matemática</option>
                             <option value="Tecnología">Tecnología</option>
+                            <option value="Legislación">Legislación</option>
+                            <option value="Material educativo">Material educativo</option>
+                            <option value="Material directivo">Material directivo</option>
+                            <option value="Interés general">Interés general</option>
                         </select>
                     </div>
 
@@ -148,6 +153,7 @@
                         <select class="form-control" asp-for="Ubicacion" id="ubicacionSelect">
                             <option value="">Seleccioná la ubicación</option>
                             <option value="Biblioteca">Biblioteca</option>
+                            <option value="Biblioteca docente">Biblioteca docente</option>
                             <option value="Aula">Aula</option>
                         </select>
                         <span asp-validation-for="Ubicacion" class="text-danger"></span>
@@ -212,7 +218,7 @@
                         <span asp-validation-for="FechaBaja" class="text-danger"></span>
                     </div>
                     <button type="submit" class="btn btn-primary mt-3">📥 Cargar Libro</button>
-                    <button type="button" class="btn btn-secondary" onclick="history.back()">⬅️ Volver</button>
+                    <button type="button" class="btn btn-secondary mt-3" onclick="history.back()">⬅️ Volver</button>
                 </div>
             </div>
         </div>

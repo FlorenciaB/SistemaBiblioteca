@@ -97,8 +97,24 @@ namespace SistemaBiblioteca.Controllers
                 return RedirectToAction("Index", "MaterialBibliografico");
             }
 
+            // Traducimos manualmente los mensajes de Identity al español
             foreach (var error in resultado.Errors)
-                ModelState.AddModelError("", error.Description);
+            {
+                string mensaje = error.Description;
+
+                if (mensaje.Contains("Passwords must be at least"))
+                    mensaje = "La contraseña debe tener al menos 6 caracteres.";
+                else if (mensaje.Contains("uppercase"))
+                    mensaje = "La contraseña debe tener al menos una letra mayúscula.";
+                else if (mensaje.Contains("digit"))
+                    mensaje = "La contraseña debe tener al menos un número.";
+                else if (mensaje.Contains("non alphanumeric"))
+                    mensaje = "La contraseña debe tener al menos un símbolo.";
+                else if (mensaje.Contains("Incorrect password"))
+                    mensaje = "La contraseña es incorrecta.";
+
+                ModelState.AddModelError("", mensaje);
+            }
 
             return View(modelo);
         }

@@ -47,7 +47,7 @@ namespace SistemaBiblioteca.Data
                         Editorial = "Kapelusz",
                         AnioEdicion = 2010,
                         Cantidad = 3,
-                        Procedencia = "Compra",
+                        Procedencia = "",
                         Materias = new List<string> { "Lengua" },
                         Grado = "6°,7°",
                         Ubicacion = "Biblioteca",

@@ -77,10 +77,15 @@
                             <option value="Educación Sexual Integral">Educación Sexual Integral</option>
                             <option value="Formación Ética y Ciudadana">Formación Ética y Ciudadana</option>
                             <option value="Historia">Historia</option>
+                            <option value="Geografía">Geografía</option>
                             <option value="Inglés">Inglés</option>
                             <option value="Lengua">Lengua</option>
                             <option value="Matemática">Matemática</option>
                             <option value="Tecnología">Tecnología</option>
+                            <option value="Legislación">Legislación</option>
+                            <option value="Material educativo">Material educativo</option>
+                            <option value="Material directivo">Material directivo</option>
+                            <option value="Interés general">Interés general</option>
                         </select>
                         <span asp-validation-for="Materias" class="text-danger"></span>
                     </div>
@@ -181,6 +186,7 @@
                             <select asp-for="Ubicacion" class="form-control" id="ubicacionSelect">
                                 <option value="">Seleccioná la ubicación</option>
                                 <option value="Biblioteca" selected="@(Model.Ubicacion == "Biblioteca" ? "selected" : null)" asp-disable="true">Biblioteca</option>
+                                <option value="Biblioteca docente" selected="@(Model.Ubicacion == "Biblioteca docente" ? "selected" : null)" asp-disable="true">Biblioteca docente</option>
                                 <option value="Aula" selected="@(Model.Ubicacion == "Aula" ? "selected" : null)" asp-disable="true">Aula</option>
                             </select>
                         </div>

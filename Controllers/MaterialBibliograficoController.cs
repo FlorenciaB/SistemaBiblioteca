@@ -555,12 +555,13 @@ namespace SistemaBiblioteca.Controllers
 
                 hoja.Cell(4, 6).Value = "CIENCIAS NATURALES Y TECNOLOGÍA";
                 hoja.Cell(4, 7).Value = "MANUAL (VA DENTRO DE LIBROS)";
-                hoja.Cell(4, 12).Value = "AULA";
+                hoja.Cell(4, 12).Value = "BIBLIOTECA DOCENTE";
                 hoja.Cell(4, 13).Value = "1°";
                 hoja.Cell(4, 14).Value = "SAN MARTÍN";
 
                 hoja.Cell(5, 6).Value = "CIENCIAS SOCIALES";
                 hoja.Cell(5, 7).Value = "ÁREAS INTEGRADAS (VA DENTRO DE LIBROS)";
+                hoja.Cell(4, 12).Value = "AULA";
                 hoja.Cell(5, 13).Value = "2°";
                 hoja.Cell(5, 14).Value = "SARMIENTO";
 
@@ -608,6 +609,16 @@ namespace SistemaBiblioteca.Controllers
                 hoja.Cell(16, 13).Value = "2DO CICLO Y 7°";
 
                 hoja.Cell(17, 6).Value = "TECNOLOGÍA";
+
+                hoja.Cell(18, 6).Value = "GEOGRAFÍA";
+
+                hoja.Cell(19, 6).Value = "LEGISLACIÓN";
+
+                hoja.Cell(20, 6).Value = "MATERIAL DIRECTIVO";
+
+                hoja.Cell(21, 6).Value = "MATERIAL EDUCATIVO";
+
+                hoja.Cell(22, 6).Value = "INTERÉS GENERAL";
 
                 // Ajuste de ancho de columnas automático
                 hoja.Columns().AdjustToContents();
@@ -782,6 +793,82 @@ namespace SistemaBiblioteca.Controllers
 
                 document.Close();
                 return File(stream.ToArray(), "application/pdf", "ReporteBiblioteca.pdf");
+            }
+        }
+
+        //Descargar biblioteca completa en excel
+        public IActionResult ExportarBibliotecaCompletaExcel()
+        {
+            using (var workbook = new XLWorkbook())
+            {
+                var hoja = workbook.Worksheets.Add("Biblioteca Completa");
+
+                // ENCABEZADOS
+                string[] columnas =
+                {
+            "ID", "N° Catálogo", "Título", "Autor", "Editorial", "Año Edición",
+            "Materias", "Submateria Lengua", "Soporte", "Subtipo Soporte",
+            "Cantidad", "Estado", "Procedencia", "Ubicación",
+            "Grados", "Aulas", "Fecha Alta", "Fecha Baja"
+            };
+
+                for (int c = 0; c < columnas.Length; c++)
+                {
+                    hoja.Cell(1, c + 1).Value = columnas[c];
+                    hoja.Cell(1, c + 1).Style.Font.Bold = true;
+                }
+
+                // OBTENER DATOS DE LA BD
+                var materiales = _context.MaterialesBibliograficos.ToList();
+
+                int row = 2;
+
+                foreach (var m in materiales)
+                {
+                    hoja.Cell(row, 1).Value = m.Id;
+                    hoja.Cell(row, 2).Value = m.NumeroCatalogo;
+                    hoja.Cell(row, 3).Value = m.Titulo;
+                    hoja.Cell(row, 4).Value = m.Autor;
+                    hoja.Cell(row, 5).Value = m.Editorial;
+                    hoja.Cell(row, 6).Value = m.AnioEdicion;
+
+                    // Materias (lista → texto)
+                    hoja.Cell(row, 7).Value = m.Materias != null ? string.Join(", ", m.Materias) : "";
+
+                    hoja.Cell(row, 8).Value = m.SubmateriaLengua;
+                    hoja.Cell(row, 9).Value = m.TipoSoporte;
+                    hoja.Cell(row, 10).Value = m.SubtipoSoporteLibro;
+                    hoja.Cell(row, 11).Value = m.Cantidad;
+                    hoja.Cell(row, 12).Value = m.Estado;
+                    hoja.Cell(row, 13).Value = m.Procedencia;
+                    hoja.Cell(row, 14).Value = m.Ubicacion;
+                    hoja.Cell(row, 15).Value = m.Grado;
+                    hoja.Cell(row, 16).Value = m.LibroAula;
+
+                    hoja.Cell(row, 17).Value = m.FechaAlta.ToString("dd/MM/yyyy");
+                    hoja.Cell(row, 18).Value = m.FechaBaja?.ToString("dd/MM/yyyy");
+
+                    row++;
+                }
+
+                hoja.Columns().AdjustToContents();
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+
+                    Response.Cookies.Append("excelReady", "1", new CookieOptions
+                    {
+                        Expires = DateTime.Now.AddSeconds(5),
+                        Path = "/"
+                    });
+
+                    return File(
+                        stream.ToArray(),
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        "BibliotecaCompleta.xlsx"
+                    );
+                }
             }
         }
     }
