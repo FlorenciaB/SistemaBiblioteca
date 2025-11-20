@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.InkML;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using Microsoft.AspNetCore.Authorization;
@@ -28,6 +29,7 @@ namespace SistemaBiblioteca.Controllers
 
         // ===================== INDEX =====================
         // GET: MaterialBibliografico
+        [Authorize(Roles = "Admin, Docente")]
         public async Task<IActionResult> Index(string materia, string estado)
         {
             var prestamosVencidos = await _context.Prestamos
@@ -57,7 +59,9 @@ namespace SistemaBiblioteca.Controllers
             // 🔹 Corregido: ahora se muestran materias individuales sin duplicados
             ViewBag.Materias = _context.MaterialesBibliograficos
                 .AsEnumerable()
-                .SelectMany(m => m.Materias) // antes Select(m => m.Materias)
+                .Where(m => !string.IsNullOrEmpty(m.Materias))
+                .SelectMany(m => m.Materias.Split(",", StringSplitOptions.RemoveEmptyEntries))
+                .Select(m => m.Trim())
                 .Distinct()
                 .OrderBy(m => m)
                 .ToList();
@@ -100,6 +104,28 @@ namespace SistemaBiblioteca.Controllers
             ViewBag.Grados = ObtenerGrados();
             ViewBag.Aulas = ObtenerAulas();
 
+            // ========== NORMALIZACIÓN DE CAMPOS SIMPLES ==========
+            material.Titulo = ToCamelCase(material.Titulo);
+            material.Autor = ToCamelCase(material.Autor);
+            material.Editorial = ToCamelCase(material.Editorial);
+            material.Procedencia = ToCamelCase(material.Procedencia);
+            material.TipoSoporte = ToCamelCase(material.TipoSoporte);
+            material.SubmateriaLengua = ToCamelCase(material.SubmateriaLengua);
+            material.SubtipoSoporteLibro = ToCamelCase(material.SubtipoSoporteLibro);
+            material.Ubicacion = ToCamelCase(material.Ubicacion);
+
+            material.MateriasSeleccionadas = material.Materias?.Split(',').ToList() ?? new List<string>();
+
+            if (!material.MateriasSeleccionadas.Any())
+                ModelState.AddModelError("Materias", "Debés seleccionar al menos una materia.");
+
+            material.MateriasSeleccionadas = material.MateriasSeleccionadas
+                .Select(m => ToCamelCase(m))
+                .Distinct()
+                .ToList();
+
+            material.Materias = string.Join(",", material.MateriasSeleccionadas);
+
             material.Estado = material.Cantidad > 0 ? "Disponible" : "Prestado";
 
             if (material.Grados == null || !material.Grados.Any())
@@ -107,20 +133,6 @@ namespace SistemaBiblioteca.Controllers
 
             material.Grado = material.Grados != null ? string.Join(", ", material.Grados) : null;
             material.LibroAula = material.Aulas != null ? string.Join(", ", material.Aulas) : null;
-
-            // 🔹 Normalización de materias antes de guardar
-            if (material.Materias != null && material.Materias.Any())
-            {
-                material.Materias = material.Materias
-                    .Select(m => ToCamelCase(m ?? string.Empty))
-                    .Where(s => !string.IsNullOrWhiteSpace(s))
-                    .Distinct()
-                    .ToList();
-            }
-            else
-            {
-                material.Materias = material.Materias ?? new List<string>();
-            }
 
             if (ModelState.IsValid)
             {
@@ -150,13 +162,21 @@ namespace SistemaBiblioteca.Controllers
             if (!string.IsNullOrEmpty(material.LibroAula))
                 material.Aulas = material.LibroAula.Split(", ").ToList();
 
+            material.MateriasSeleccionadas = material.Materias?
+                .Split(",", StringSplitOptions.RemoveEmptyEntries)?
+                .Select(m => m.Trim())
+                .ToList()
+                ?? new List<string>();
+
             ViewBag.Grados = ObtenerGrados();
             ViewBag.Aulas = ObtenerAulas();
-            ViewBag.MateriasSeleccionadas = string.Join(", ", material.Materias ?? new List<string>());
+
+            ViewBag.MateriasSeleccionadas = string.Join(", ", material.MateriasSeleccionadas);
 
             ViewBag.Procedencias = new SelectList(new[]
                {
                     "Ministerio de Educación de la Nación",
+                    "Ministerio de Educación de la Provincia",
                     "Cooperadora",
                     "Donación",
                     "Compra",
@@ -179,6 +199,7 @@ namespace SistemaBiblioteca.Controllers
             ViewBag.Procedencias = new SelectList(new[]
             {
                 "Ministerio de Educación de la Nación",
+                "Ministerio de Educación de la Provincia",
                 "Cooperadora",
                 "Donación",
                 "Compra",
@@ -194,19 +215,17 @@ namespace SistemaBiblioteca.Controllers
             if (material.Grados == null || !material.Grados.Any())
                 ModelState.AddModelError("Grados", "Debés seleccionar el grado.");
 
-            // 🔹 Normalización de materias
-            if (material.Materias != null && material.Materias.Any())
-            {
-                material.Materias = material.Materias
-                    .Select(m => ToCamelCase(m ?? string.Empty))
-                    .Where(s => !string.IsNullOrWhiteSpace(s))
-                    .Distinct()
-                    .ToList();
-            }
-            else
-            {
-                material.Materias = material.Materias ?? new List<string>();
-            }
+            material.MateriasSeleccionadas = material.Materias?.Split(',').ToList() ?? new List<string>();
+
+            if (!material.MateriasSeleccionadas.Any())
+                ModelState.AddModelError("Materias", "Debés seleccionar al menos una materia.");
+
+            material.MateriasSeleccionadas = material.MateriasSeleccionadas
+                .Select(m => ToCamelCase(m))
+                .Distinct()
+                .ToList();
+
+            material.Materias = string.Join(",", material.MateriasSeleccionadas);
 
             if (ModelState.IsValid)
             {
@@ -398,7 +417,7 @@ namespace SistemaBiblioteca.Controllers
                                     Autor = ToCamelCase(NormalizarTexto(autor)),
                                     Editorial = ToCamelCase(NormalizarTexto(editorial)),
                                     AnioEdicion = anioEdicion,
-                                    Materias = materiasLista,
+                                    Materias = string.Join(", ", materiasLista),
                                     SubmateriaLengua = ToCamelCase(NormalizarTexto(submateriaLengua)),
                                     TipoSoporte = ToCamelCase(NormalizarTexto(tipoSoporte)),
                                     SubtipoSoporteLibro = ToCamelCase(NormalizarTexto(subtipoSoporte)),
@@ -620,6 +639,10 @@ namespace SistemaBiblioteca.Controllers
 
                 hoja.Cell(22, 6).Value = "INTERÉS GENERAL";
 
+                hoja.Cell(23, 6).Value = "ÁREAS INTEGRADAS";
+
+                hoja.Cell(24, 6).Value = "COMPUTACIÓN";
+
                 // Ajuste de ancho de columnas automático
                 hoja.Columns().AdjustToContents();
 
@@ -638,36 +661,33 @@ namespace SistemaBiblioteca.Controllers
         public async Task<IActionResult> Reportes()
         {
             // Total de libros
-            var totalLibros = await _context.MaterialesBibliograficos.SumAsync(m => m.Cantidad);
+            var totalLibros = await _context.MaterialesBibliograficos.SumAsync(m => m.Cantidad) + await _context.Prestamos.CountAsync(p => p.FechaDevolucion == null);
+
+            // Total de títulos
+            var totalTitulos = await _context.MaterialesBibliograficos.CountAsync();
 
             // Libros por materia
             var librosPorMateria = _context.MaterialesBibliograficos
                 .AsEnumerable()
-                .SelectMany(m => m.Materias)
+                .SelectMany(m => (m.Materias ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                 .GroupBy(m => m)
                 .Select(g => new { Materia = g.Key, Cantidad = g.Count() })
                 .ToList();
-
-            // Libros por procedencia
-            var librosPorProcedencia = await _context.MaterialesBibliograficos
-                .GroupBy(m => m.Procedencia)
-                .Select(g => new { Procedencia = g.Key, Cantidad = g.Sum(m => m.Cantidad) })
-                .ToListAsync();
 
             // Préstamos activos
             var prestamosActivos = await _context.Prestamos.CountAsync(p => p.FechaDevolucion == null);
 
             // Enviamos todo con ViewBag
             ViewBag.TotalLibros = totalLibros;
+            ViewBag.TotalTitulos = totalTitulos;
             ViewBag.LibrosPorMateria = librosPorMateria;
-            ViewBag.LibrosPorProcedencia = librosPorProcedencia;
             ViewBag.PrestamosActivos = prestamosActivos;
 
             return View();
         }
 
         //Descargar reporte cantidad en Excel
-        public IActionResult ExportarExcel()
+        public async Task<IActionResult> ExportarExcel()
         {
             using (var workbook = new XLWorkbook())
             {
@@ -680,16 +700,15 @@ namespace SistemaBiblioteca.Controllers
 
                 // Títulos
                 worksheet.Cell(3, 1).Value = "Materia";
-                worksheet.Cell(3, 2).Value = "Cantidad";
-                worksheet.Cell(3, 3).Value = "Procedencia";
-                worksheet.Cell(3, 4).Value = "Cantidad por procedencia";
+                worksheet.Cell(3, 2).Value = "Cantidad por materia";
+                worksheet.Cell(3, 3).Value = "Cantidad total de libros";
 
                 var row = 4;
 
                 // Libros por materia
                 var librosPorMateria = _context.MaterialesBibliograficos
                     .AsEnumerable()
-                    .SelectMany(m => m.Materias)
+                    .SelectMany(m => (m.Materias ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                     .GroupBy(m => m)
                     .Select(g => new { Materia = g.Key, Cantidad = g.Count() })
                     .ToList();
@@ -703,18 +722,12 @@ namespace SistemaBiblioteca.Controllers
 
                 row = 4;
 
-                // Libros por procedencia
-                var porProcedencia = _context.MaterialesBibliograficos
-                    .GroupBy(m => m.Procedencia)
-                    .Select(g => new { Procedencia = g.Key, Cantidad = g.Sum(m => m.Cantidad) })
-                    .ToList();
+                // Cantidad total de libros (sin importar préstamos)
+                var totalLibros = await _context.MaterialesBibliograficos.SumAsync(m => m.Cantidad) + await _context.Prestamos.CountAsync(p => p.FechaDevolucion == null);
 
-                foreach (var item in porProcedencia)
-                {
-                    worksheet.Cell(row, 3).Value = item.Procedencia;
-                    worksheet.Cell(row, 4).Value = item.Cantidad;
-                    row++;
-                }
+                // Lo escribimos en la columna 3, fila 4
+                worksheet.Cell(4, 3).Value = totalLibros;
+                worksheet.Cell(4, 3).Style.Font.Bold = true;
 
                 worksheet.Columns().AdjustToContents();
 
@@ -742,12 +755,21 @@ namespace SistemaBiblioteca.Controllers
                 var sectionFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
                 var textFont = FontFactory.GetFont(FontFactory.HELVETICA, 10);
 
+                string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_biblioteca_reporte.png");
+                if (System.IO.File.Exists(logoPath))
+                {
+                    iTextSharp.text.Image logo = iTextSharp.text.Image.GetInstance(logoPath);
+                    logo.Alignment = Element.ALIGN_CENTER;
+                    logo.ScaleToFit(250f, 250f); // Ajusta tamaño
+                    document.Add(logo);
+                }
+
                 document.Add(new Paragraph("📚 Reporte de la Biblioteca\n\n", titleFont));
 
                 // Total libros
                 var totalLibros = _context.MaterialesBibliograficos.Sum(m => m.Cantidad);
                 var prestamosActivos = _context.Prestamos.Count(p => p.FechaDevolucion == null);
-                document.Add(new Paragraph($"Total de libros: {totalLibros}", textFont));
+                document.Add(new Paragraph($"Total de libros: {totalLibros + prestamosActivos}", textFont));
                 document.Add(new Paragraph($"Préstamos activos: {prestamosActivos}\n\n", textFont));
 
                 // Tabla por materia
@@ -757,11 +779,15 @@ namespace SistemaBiblioteca.Controllers
                 tablaMateria.AddCell("Cantidad");
 
                 var librosPorMateria = _context.MaterialesBibliograficos
-                    .AsEnumerable()
-                    .SelectMany(m => m.Materias)
-                    .GroupBy(m => m)
-                    .Select(g => new { Materia = g.Key, Cantidad = g.Count() })
-                    .ToList();
+                     .AsEnumerable()
+                     .SelectMany(m =>
+                         (m.Materias ?? "")
+                         .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                         .Select(mat => mat.Trim())
+                     )
+                     .GroupBy(m => m)
+                     .Select(g => new { Materia = g.Key, Cantidad = g.Count() })
+                     .ToList();
 
                 foreach (var item in librosPorMateria)
                 {
@@ -806,7 +832,7 @@ namespace SistemaBiblioteca.Controllers
                 // ENCABEZADOS
                 string[] columnas =
                 {
-            "ID", "N° Catálogo", "Título", "Autor", "Editorial", "Año Edición",
+            "N° Catálogo", "Título", "Autor", "Editorial", "Año Edición",
             "Materias", "Submateria Lengua", "Soporte", "Subtipo Soporte",
             "Cantidad", "Estado", "Procedencia", "Ubicación",
             "Grados", "Aulas", "Fecha Alta", "Fecha Baja"
@@ -825,28 +851,27 @@ namespace SistemaBiblioteca.Controllers
 
                 foreach (var m in materiales)
                 {
-                    hoja.Cell(row, 1).Value = m.Id;
-                    hoja.Cell(row, 2).Value = m.NumeroCatalogo;
-                    hoja.Cell(row, 3).Value = m.Titulo;
-                    hoja.Cell(row, 4).Value = m.Autor;
-                    hoja.Cell(row, 5).Value = m.Editorial;
-                    hoja.Cell(row, 6).Value = m.AnioEdicion;
+                    hoja.Cell(row, 1).Value = m.NumeroCatalogo;
+                    hoja.Cell(row, 2).Value = m.Titulo;
+                    hoja.Cell(row, 3).Value = m.Autor;
+                    hoja.Cell(row, 4).Value = m.Editorial;
+                    hoja.Cell(row, 5).Value = m.AnioEdicion;
 
                     // Materias (lista → texto)
-                    hoja.Cell(row, 7).Value = m.Materias != null ? string.Join(", ", m.Materias) : "";
+                    hoja.Cell(row, 6).Value = m.Materias != null ? string.Join(", ", m.Materias) : "";
 
-                    hoja.Cell(row, 8).Value = m.SubmateriaLengua;
-                    hoja.Cell(row, 9).Value = m.TipoSoporte;
-                    hoja.Cell(row, 10).Value = m.SubtipoSoporteLibro;
-                    hoja.Cell(row, 11).Value = m.Cantidad;
-                    hoja.Cell(row, 12).Value = m.Estado;
-                    hoja.Cell(row, 13).Value = m.Procedencia;
-                    hoja.Cell(row, 14).Value = m.Ubicacion;
-                    hoja.Cell(row, 15).Value = m.Grado;
-                    hoja.Cell(row, 16).Value = m.LibroAula;
+                    hoja.Cell(row, 7).Value = m.SubmateriaLengua;
+                    hoja.Cell(row, 8).Value = m.TipoSoporte;
+                    hoja.Cell(row, 9).Value = m.SubtipoSoporteLibro;
+                    hoja.Cell(row, 10).Value = m.Cantidad;
+                    hoja.Cell(row, 11).Value = m.Estado;
+                    hoja.Cell(row, 12).Value = m.Procedencia;
+                    hoja.Cell(row, 13).Value = m.Ubicacion;
+                    hoja.Cell(row, 14).Value = m.Grado;
+                    hoja.Cell(row, 15).Value = m.LibroAula;
 
-                    hoja.Cell(row, 17).Value = m.FechaAlta.ToString("dd/MM/yyyy");
-                    hoja.Cell(row, 18).Value = m.FechaBaja?.ToString("dd/MM/yyyy");
+                    hoja.Cell(row, 16).Value = m.FechaAlta.ToString("dd/MM/yyyy");
+                    hoja.Cell(row, 17).Value = m.FechaBaja?.ToString("dd/MM/yyyy");
 
                     row++;
                 }

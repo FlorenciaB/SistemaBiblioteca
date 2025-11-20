@@ -39,7 +39,7 @@ namespace SistemaBiblioteca.Controllers
 
         public IActionResult CrearUsuario()
         {
-            ViewBag.Roles = new List<string> { "Docente", "Alumno" };
+            ViewBag.Roles = new List<string> { "Docente" };
             return View();
         }
 
@@ -48,7 +48,7 @@ namespace SistemaBiblioteca.Controllers
         public async Task<IActionResult> CrearUsuario(CrearUsuarioViewModel model)
         {
             // Roles disponibles
-            ViewBag.Roles = new List<string> { "Docente", "Alumno" };
+            ViewBag.Roles = new List<string> { "Docente"};
 
             if (!ModelState.IsValid)
             {

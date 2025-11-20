@@ -32,6 +32,13 @@ public class HomeController : Controller
 
         var librosFiltrados = await query.ToListAsync();
 
+        ViewBag.Materias = await _context.Materias
+        .Select(m => m.Nombre)
+        .ToListAsync();
+
+        ViewBag.MateriaSeleccionada = materias;
+
+
         return View(librosFiltrados);
     }
 }

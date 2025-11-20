@@ -16,6 +16,15 @@ namespace SistemaBiblioteca.Helpers
                 PdfWriter.GetInstance(doc, ms);
                 doc.Open();
 
+                string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo_biblioteca_reporte.png");
+                if (System.IO.File.Exists(logoPath))
+                {
+                    var logo = iTextSharp.text.Image.GetInstance(logoPath);
+                    logo.Alignment = iTextSharp.text.Element.ALIGN_CENTER;
+                    logo.ScaleToFit(250f, 250f);
+                    doc.Add(logo);
+                }
+
                 var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 18);
                 var normalFont = FontFactory.GetFont(FontFactory.HELVETICA, 12);
 

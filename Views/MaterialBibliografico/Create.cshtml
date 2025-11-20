@@ -54,9 +54,11 @@
                         <label class="form-label">Materia</label>
                         <select class="form-control" id="materiaSelect">
                             <option value="">Seleccioná una materia</option>
+                            <option value="Áreas integradas">Áreas integradas</option>
                             <option value="Ciencias Naturales">Ciencias Naturales</option>
                             <option value="Ciencias Naturales y Tecnología">Ciencias Naturales y Tecnología</option>
                             <option value="Ciencias Sociales">Ciencias Sociales</option>
+                            <option value="Computación">Computación</option>
                             <option value="Educación Artística: Música">Educación Artística: Música</option>
                             <option value="Educación Artística: Plástica">Educación Artística: Plástica</option>
                             <option value="Educación Física">Educación Física</option>
@@ -187,10 +189,10 @@
                         <label asp-for="Procedencia" class="form-label"></label>
                         <select asp-for="Procedencia" class="form-control">
                             <option value="">Seleccioná procedencia</option>
-                            <option value="MinisterioNacion">Ministerio de Educación de la Nación</option>
-                            <option value="MinisterioProvincia">Ministerio de Educación de la Provincia</option>
+                            <option value="Ministerio de Educación de la Nación">Ministerio de Educación de la Nación</option>
+                            <option value="Ministerio de Educación de la Provincia">Ministerio de Educación de la Provincia</option>
                             <option value="Cooperadora">Cooperadora</option>
-                            <option value="Donacion">Donación</option>                            
+                            <option value="Donación">Donación</option>                            
                         </select>
                         <span asp-validation-for="Procedencia" class="text-danger"></span>
                     </div>

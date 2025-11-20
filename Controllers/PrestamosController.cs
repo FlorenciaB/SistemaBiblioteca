@@ -24,7 +24,7 @@ namespace SistemaBiblioteca.Controllers
             _userManager = userManager;
         }
 
-        [Authorize]
+        [Authorize(Roles = "Docente, Admin")]
         public async Task<IActionResult> Index(string estado)
         {
             var prestamos = _context.Prestamos
@@ -37,7 +37,7 @@ namespace SistemaBiblioteca.Controllers
                 prestamos = prestamos.Where(p => p.FechaDevolucion != null);
 
             ViewBag.EstadoSeleccionado = estado;
-
+            ViewBag.IsAdmin = User.IsInRole("Admin");
             return View(await prestamos.ToListAsync());
         }
 
@@ -85,6 +85,12 @@ namespace SistemaBiblioteca.Controllers
                 return View(prestamo);
             }
 
+            // =================================================
+            // 🌸 NORMALIZACIÓN DE LOS CAMPOS DEL FORMULARIO 🌸
+            // =================================================
+            prestamo.NombreNino = NormalizeToTitleCase(prestamo.NombreNino);
+            prestamo.ApellidoNino = NormalizeToTitleCase(prestamo.ApellidoNino);
+
             var usuario = await _userManager.GetUserAsync(User);
             if (usuario == null)
             {
@@ -113,7 +119,9 @@ namespace SistemaBiblioteca.Controllers
 
             // Generar comprobante PDF
             var pdfBytes = PdfHelper.GenerarComprobantePrestamoPdf(prestamo);
+
             string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "comprobantes");
+
             if (!Directory.Exists(folderPath))
                 Directory.CreateDirectory(folderPath);
 
@@ -172,6 +180,17 @@ namespace SistemaBiblioteca.Controllers
             TempData["Success"] = "Libro marcado como devuelto correctamente.";
             return RedirectToAction("Index");
         }
+        //METODO AUXILIAR
+        private string? NormalizeToTitleCase(string? input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return input;
 
+            input = input.Trim().ToLower();
+
+            // Convierte a Title Case según cultura
+            var textInfo = System.Globalization.CultureInfo.CurrentCulture.TextInfo;
+            return textInfo.ToTitleCase(input);
+        }
     }
 }

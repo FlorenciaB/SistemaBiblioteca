@@ -1,7 +1,7 @@
 ﻿@{
     ViewData["Title"] = "Reportes de Biblioteca";
-    var librosPorProcedencia = ViewBag.LibrosPorProcedencia as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
     var librosPorMateria = ViewBag.LibrosPorMateria as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var totalTitulos = ViewBag.totalTitulos ?? 0;
     var totalLibros = ViewBag.TotalLibros ?? 0;
     var prestamosActivos = ViewBag.PrestamosActivos ?? 0;
 }
@@ -9,6 +9,16 @@
 <h2 class="text-center mb-4 text-primary fw-bold">📊 Reportes del Sistema</h2>
 
 <div class="row g-4 justify-content-center">
+ <!-- Total de titulos -->
+    <div class="col-md-4">
+        <div class="card text-center shadow-sm border-0">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Total de títulos</h5>
+                <p class="display-6 fw-bold">@totalTitulos</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Total de libros -->
     <div class="col-md-4">
         <div class="card text-center shadow-sm border-0">
@@ -29,6 +39,8 @@
         </div>
     </div>
 </div>
+
+
 
 <hr class="my-5" />
 
@@ -63,67 +75,54 @@
     </div>
 </div>
 
-<!-- Gráfico por Procedencia -->
-<div class="card shadow-sm border-0 mb-5">
-    <div class="card-body">
-        <h4 class="card-title text-primary mb-3">🎁 Libros por Procedencia</h4>
-        <div class="row">
-            <div class="col-md-6">
-                <canvas id="chartProcedencia"></canvas>
-            </div>
-            <div class="col-md-6">
-                <table class="table table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Procedencia</th>
-                            <th>Cantidad</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in librosPorProcedencia)
-                        {
-                            <tr>
-                                <td>@(item.Procedencia ?? "Sin especificar")</td>
-                                <td>@item.Cantidad</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="mt-4 text-center">
     <a asp-action="ExportarExcel" class="btn btn-success me-2">📗 Exportar a Excel</a>
     <a asp-action="ExportarPDF" class="btn btn-danger">📕 Exportar a PDF</a>
     <a asp-action="Index" class="btn btn-secondary px-4">Volver al listado</a>
 </div>
 
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const materias = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(librosPorMateria?.Select(m => m.Materia)));
-            const materiasCant = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(librosPorMateria?.Select(m => m.Cantidad)));
 
-            const procedencias = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(librosPorProcedencia?.Select(p => p.Procedencia)));
-            const procedenciasCant = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(librosPorProcedencia?.Select(p => p.Cantidad)));
+            // Convertimos los datos en C# y luego los pasamos a JS
+            const materias = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                            (ViewBag.LibrosPorMateria as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>())
+                            .Select(m => m.Materia?.ToString() ?? "")
+                    ));
 
-            new Chart(document.getElementById("chartMaterias"), {
-                type: "bar",
-                data: {
-                    labels: materias,
-                    datasets: [{
-                        label: "Cantidad de libros",
-                        data: materiasCant,
-                        backgroundColor: "rgba(13,110,253,0.6)",
-                        borderColor: "rgba(13,110,253,1)",
-                        borderWidth: 1
-                    }]
-                },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
-            });
+        const materiasCant = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                        (ViewBag.LibrosPorMateria as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>())
+                        .Select(m => (int)m.Cantidad)
+                ));
+
+        const procedencias = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                        (ViewBag.LibrosPorProcedencia as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>())
+                        .Select(p => p.Procedencia?.ToString() ?? "Sin especificar")
+                ));
+
+        const procedenciasCant = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+                        (ViewBag.LibrosPorProcedencia as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>())
+                        .Select(p => (int)p.Cantidad)
+                ));
+
+        // Graficos
+        new Chart(document.getElementById("chartMaterias"), {
+            type: "bar",
+            data: {
+                labels: materias,
+                datasets: [{
+                    label: "Cantidad de libros",
+                    data: materiasCant,
+                    backgroundColor: "rgba(13,110,253,0.6)",
+                    borderColor: "rgba(13,110,253,1)",
+                    borderWidth: 1
+                }]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
 
             new Chart(document.getElementById("chartProcedencia"), {
                 type: "doughnut",

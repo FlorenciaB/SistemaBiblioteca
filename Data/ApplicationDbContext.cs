@@ -19,15 +19,6 @@ namespace SistemaBiblioteca.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            var materiasConverter = new ValueConverter<List<string>, string>(
-                v => string.Join(',', v),
-                v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
-            );
-
-            modelBuilder.Entity<MaterialBibliografico>()
-                .Property(m => m.Materias)
-                .HasConversion(materiasConverter);
         }
     }
 }

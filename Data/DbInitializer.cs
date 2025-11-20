@@ -9,7 +9,7 @@ namespace SistemaBiblioteca.Data
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
-            string[] roles = { "Admin", "Docente", "Alumno" };
+            string[] roles = { "Admin", "Docente" };
 
             foreach (var rol in roles)
             {

@@ -40,7 +40,10 @@ namespace SistemaBiblioteca.Models
         // ✅ Esta es la propiedad que usará EF Core (lista de materias)
         [Required(ErrorMessage = "Debes seleccionar al menos una materia.")]
         [Display(Name = "Materia/s")]
-        public List<string>? Materias { get; set; } = new List<string>();
+        [NotMapped]
+        public List<string> MateriasSeleccionadas { get; set; } = new List<string>();
+
+        public string? Materias { get; set; }
 
 
         public string? SubmateriaLengua { get; set; }
