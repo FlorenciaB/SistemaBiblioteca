@@ -30,7 +30,8 @@ namespace SistemaBiblioteca.Controllers
                 {
                     UserId = usuario.Id,
                     Email = usuario.Email,
-                    Roles = roles.ToList()
+                    Roles = roles.ToList(),
+                    EstaBloqueado = usuario.LockoutEnd.HasValue && usuario.LockoutEnd > DateTime.UtcNow
                 });
             }
 

@@ -105,14 +105,14 @@ namespace SistemaBiblioteca.Controllers
             ViewBag.Aulas = ObtenerAulas();
 
             // ========== NORMALIZACIÓN DE CAMPOS SIMPLES ==========
-            material.Titulo = ToCamelCase(material.Titulo);
-            material.Autor = ToCamelCase(material.Autor);
-            material.Editorial = ToCamelCase(material.Editorial);
-            material.Procedencia = ToCamelCase(material.Procedencia);
-            material.TipoSoporte = ToCamelCase(material.TipoSoporte);
-            material.SubmateriaLengua = ToCamelCase(material.SubmateriaLengua);
-            material.SubtipoSoporteLibro = ToCamelCase(material.SubtipoSoporteLibro);
-            material.Ubicacion = ToCamelCase(material.Ubicacion);
+            material.Titulo = ToUpper(material.Titulo);
+            material.Autor = ToUpper(material.Autor);
+            material.Editorial = ToUpper(material.Editorial);
+            material.Procedencia = ToUpper(material.Procedencia);
+            material.TipoSoporte = ToUpper(material.TipoSoporte);
+            material.SubmateriaLengua = ToUpper(material.SubmateriaLengua);
+            material.SubtipoSoporteLibro = ToUpper(material.SubtipoSoporteLibro);
+            material.Ubicacion = ToUpper(material.Ubicacion);
 
             material.MateriasSeleccionadas = material.Materias?.Split(',').ToList() ?? new List<string>();
 
@@ -120,7 +120,7 @@ namespace SistemaBiblioteca.Controllers
                 ModelState.AddModelError("Materias", "Debés seleccionar al menos una materia.");
 
             material.MateriasSeleccionadas = material.MateriasSeleccionadas
-                .Select(m => ToCamelCase(m))
+                .Select(m => ToUpper(m))
                 .Distinct()
                 .ToList();
 
@@ -175,12 +175,12 @@ namespace SistemaBiblioteca.Controllers
 
             ViewBag.Procedencias = new SelectList(new[]
                {
-                    "Ministerio de Educación de la Nación",
-                    "Ministerio de Educación de la Provincia",
-                    "Cooperadora",
-                    "Donación",
-                    "Compra",
-                    "Otros"
+                "MINISTERIO DE EDUCACION DE LA NACION",
+                "MINISTERIO DE EDUCACION DE LA PROVINCIA",
+                "COOPERADORA",
+                "DONACION",
+                "COMPRA",
+                "OTROS"
                 }, material.Procedencia);
 
             return View(material);
@@ -198,12 +198,12 @@ namespace SistemaBiblioteca.Controllers
 
             ViewBag.Procedencias = new SelectList(new[]
             {
-                "Ministerio de Educación de la Nación",
-                "Ministerio de Educación de la Provincia",
-                "Cooperadora",
-                "Donación",
-                "Compra",
-                "Otros"
+                "MINISTERIO DE EDUCACION DE LA NACION",
+                "MINISTERIO DE EDUCACION DE LA PROVINCIA",
+                "COOPERADORA",
+                "DONACION",
+                "COMPRA",
+                "OTROS"
             }, material.Procedencia);
 
             if (string.IsNullOrEmpty(material.Ubicacion))
@@ -221,7 +221,7 @@ namespace SistemaBiblioteca.Controllers
                 ModelState.AddModelError("Materias", "Debés seleccionar al menos una materia.");
 
             material.MateriasSeleccionadas = material.MateriasSeleccionadas
-                .Select(m => ToCamelCase(m))
+                .Select(m => ToUpper(m))
                 .Distinct()
                 .ToList();
 
@@ -237,13 +237,13 @@ namespace SistemaBiblioteca.Controllers
                     ActualizarCampos(materialDb, material);
 
                     materialDb.Procedencia = NormalizarProcedencia(material.Procedencia);
-                    materialDb.Titulo = ToCamelCase(material.Titulo);
-                    materialDb.Autor = ToCamelCase(material.Autor);
-                    materialDb.Editorial = ToCamelCase(material.Editorial);
+                    materialDb.Titulo = ToUpper(material.Titulo);
+                    materialDb.Autor = ToUpper(material.Autor);
+                    materialDb.Editorial = ToUpper(material.Editorial);
                     materialDb.Materias = material.Materias;
-                    materialDb.SubmateriaLengua = ToCamelCase(material.SubmateriaLengua);
-                    materialDb.TipoSoporte = ToCamelCase(material.TipoSoporte);
-                    materialDb.SubtipoSoporteLibro = ToCamelCase(material.SubtipoSoporteLibro);
+                    materialDb.SubmateriaLengua = ToUpper(material.SubmateriaLengua);
+                    materialDb.TipoSoporte = ToUpper(material.TipoSoporte);
+                    materialDb.SubtipoSoporteLibro = ToUpper(material.SubtipoSoporteLibro);
                     materialDb.Estado = materialDb.Cantidad > 0 ? "Disponible" : "Prestado";
 
                     await _context.SaveChangesAsync();
@@ -407,23 +407,23 @@ namespace SistemaBiblioteca.Controllers
                                 // Dividir materias separadas por coma
                                 var materiasLista = materiasTexto?
                                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                    .Select(m => ToCamelCase(NormalizarTexto(m)))
+                                    .Select(m => ToUpper(NormalizarTexto(m)))
                                     .ToList() ?? new List<string>();
 
                                 var libro = new MaterialBibliografico
                                 {
                                     NumeroCatalogo = numeroCatalogo,
-                                    Titulo = ToCamelCase(NormalizarTexto(titulo)),
-                                    Autor = ToCamelCase(NormalizarTexto(autor)),
-                                    Editorial = ToCamelCase(NormalizarTexto(editorial)),
+                                    Titulo = ToUpper(NormalizarTexto(titulo)),
+                                    Autor = ToUpper(NormalizarTexto(autor)),
+                                    Editorial = ToUpper(NormalizarTexto(editorial)),
                                     AnioEdicion = anioEdicion,
                                     Materias = string.Join(", ", materiasLista),
-                                    SubmateriaLengua = ToCamelCase(NormalizarTexto(submateriaLengua)),
-                                    TipoSoporte = ToCamelCase(NormalizarTexto(tipoSoporte)),
-                                    SubtipoSoporteLibro = ToCamelCase(NormalizarTexto(subtipoSoporte)),
+                                    SubmateriaLengua = ToUpper(NormalizarTexto(submateriaLengua)),
+                                    TipoSoporte = ToUpper(NormalizarTexto(tipoSoporte)),
+                                    SubtipoSoporteLibro = ToUpper(NormalizarTexto(subtipoSoporte)),
                                     Cantidad = cantidad,
-                                    Procedencia = ToCamelCase(NormalizarProcedencia(procedencia)),
-                                    Ubicacion = ToCamelCase(NormalizarTexto(ubicacion)),
+                                    Procedencia = ToUpper(NormalizarProcedencia(procedencia)),
+                                    Ubicacion = ToUpper(NormalizarTexto(ubicacion)),
                                     Grado = grado,
                                     LibroAula = aula,
                                     Estado = cantidad > 0 ? "Disponible" : "Prestado",
@@ -458,24 +458,25 @@ namespace SistemaBiblioteca.Controllers
         // ===================== MÉTODOS AUXILIARES =====================
         private List<string> ObtenerGrados() => new()
         {
-            "Nivel inicial", "1°", "2°", "3°", "4°", "5°", "6°", "7°", "Avanzado",
-            "Nivel Primario", "1er ciclo", "2do ciclo", "1er y 2do ciclo", "2do ciclo y 7°"
+            "NIVEL INICIAL", "1°", "2°", "3°", "4°", "5°", "6°", "7°",
+            "AVANZADO", "NIVEL PRIMARIO", "1ER CICLO", "2DO CICLO",
+            "1ER Y 2DO CICLO", "2DO CICLO Y 7°"
         };
 
         private List<string> ObtenerAulas() => new()
         {
-            "Ardillitas", "San Martín", "Sarmiento", "Moreno", "Belgrano"
+            "ARDILLITAS", "SAN MARTÍN", "SARMIENTO", "MORENO", "BELGRANO"
         };
 
-        private string ToCamelCase(string input)
+        private string ToUpper(string input)
         {
             if (string.IsNullOrWhiteSpace(input))
                 return input;
+
             input = input.Trim();
 
-            return char.ToUpper(input[0]) + input.Substring(1).ToLower();
+            return input.ToUpper();
         }
-
         private string NormalizarTexto(string input)
         {
             if (string.IsNullOrEmpty(input)) return input;
@@ -492,19 +493,19 @@ namespace SistemaBiblioteca.Controllers
         {
             if (string.IsNullOrEmpty(input)) return input;
 
-            input = NormalizarTexto(input).ToLower();
+            input = NormalizarTexto(input).ToUpper();
 
             if (input.Contains("nacion") || input.Contains("nacional"))
-                return "Ministerio de Educación de la Nación";
+                return "MINISTERIO DE EDUCACION DE LA NACION";
 
             if (input.Contains("provincia") || input.Contains("provincial"))
-                return "Ministerio de Educación de la Provincia";
+                return "MINISTERIO DE EDUCACION DE LA PROVINCIA";
 
             if (input.Contains("cooperadora"))
-                return "Cooperadora";
+                return "COOPERADORA";
 
             if (input.Contains("donacion") || input.Contains("donación"))
-                return "Donación";
+                return "DONACION";
 
             return input;
         }
@@ -564,84 +565,103 @@ namespace SistemaBiblioteca.Controllers
                     hoja.Cell(2, i + 1).Style.Font.FontColor = XLColor.Gray; // opcional: poner en gris
                 }
 
-                // Filas de ejemplo posibles de materias, tipos de soporte, grados y aulas
+                // FILA 3
                 hoja.Cell(3, 6).Value = "CIENCIAS NATURALES";
-                hoja.Cell(3, 7).Value = "LIBROS";
+                hoja.Cell(3, 7).Value = "LITERATURA";
+                hoja.Cell(3, 8).Value = "LIBROS";
+                hoja.Cell(3, 9).Value = "MANUAL";
                 hoja.Cell(3, 12).Value = "BIBLIOTECA";
                 hoja.Cell(3, 13).Value = "NIVEL INICIAL";
                 hoja.Cell(3, 14).Value = "ARDILLITAS";
 
-
+                // FILA 4
                 hoja.Cell(4, 6).Value = "CIENCIAS NATURALES Y TECNOLOGÍA";
-                hoja.Cell(4, 7).Value = "MANUAL (VA DENTRO DE LIBROS)";
-                hoja.Cell(4, 12).Value = "BIBLIOTECA DOCENTE";
+                hoja.Cell(4, 7).Value = "ORTOGRAFÍA";
+                hoja.Cell(4, 8).Value = "REVISTAS";
+                hoja.Cell(4, 9).Value = "ÁREAS INTEGRADAS";
+                hoja.Cell(4, 12).Value = "AULA";
                 hoja.Cell(4, 13).Value = "1°";
                 hoja.Cell(4, 14).Value = "SAN MARTÍN";
 
+                // FILA 5
                 hoja.Cell(5, 6).Value = "CIENCIAS SOCIALES";
-                hoja.Cell(5, 7).Value = "ÁREAS INTEGRADAS (VA DENTRO DE LIBROS)";
-                hoja.Cell(4, 12).Value = "AULA";
+                hoja.Cell(5, 8).Value = "ATLAS";               
                 hoja.Cell(5, 13).Value = "2°";
                 hoja.Cell(5, 14).Value = "SARMIENTO";
 
+                // FILA 6
                 hoja.Cell(6, 6).Value = "EDUCACIÓN ARTÍSTICA: MÚSICA";
-                hoja.Cell(6, 7).Value = "REVISTAS";
+                hoja.Cell(6, 8).Value = "ENCICLOPEDIAS";
                 hoja.Cell(6, 13).Value = "3°";
                 hoja.Cell(6, 14).Value = "MORENO";
 
+                // FILA 7
                 hoja.Cell(7, 6).Value = "EDUCACIÓN ARTÍSTICA: PLÁSTICA";
-                hoja.Cell(7, 7).Value = "ATLAS";
+                hoja.Cell(7, 8).Value = "VIDEOTECA";
                 hoja.Cell(7, 13).Value = "4°";
                 hoja.Cell(7, 14).Value = "BELGRANO";
 
+                // FILA 8
                 hoja.Cell(8, 6).Value = "EDUCACIÓN FÍSICA";
-                hoja.Cell(8, 7).Value = "ENCICLOPEDIAS";
+                hoja.Cell(8, 8).Value = "MATERIAL DIDÁCTICO";
                 hoja.Cell(8, 13).Value = "5°";
 
+                // FILA 9
                 hoja.Cell(9, 6).Value = "EDUCACIÓN SEXUAL INTEGRAL";
-                hoja.Cell(9, 7).Value = "VIDEOTECA";
+                hoja.Cell(9, 8).Value = "COLECCIONES";
                 hoja.Cell(9, 13).Value = "6°";
 
+                // FILA 10
                 hoja.Cell(10, 6).Value = "FORMACIÓN ÉTICA Y CIUDADANA";
-                hoja.Cell(10, 7).Value = "MATERIAL DIDÁCTICO";
+                hoja.Cell(10, 8).Value = "DICCIONARIOS";
                 hoja.Cell(10, 13).Value = "7°";
 
+                // FILA 11
                 hoja.Cell(11, 6).Value = "HISTORIA";
-                hoja.Cell(11, 7).Value = "COLECCIONES";
+                hoja.Cell(11, 8).Value = "MAPOTECA (SIN PRÉSTAMO)";
                 hoja.Cell(11, 13).Value = "AVANZADO";
 
+                // FILA 12
                 hoja.Cell(12, 6).Value = "INGLÉS";
-                hoja.Cell(12, 7).Value = "DICCIONARIOS";
                 hoja.Cell(12, 13).Value = "NIVEL PRIMARIO";
 
+                // FILA 13
                 hoja.Cell(13, 6).Value = "LENGUA";
-                hoja.Cell(13, 7).Value = "MAPOTECA (SIN PRÉSTAMO)";
                 hoja.Cell(13, 13).Value = "1ER CICLO";
 
-                hoja.Cell(14, 6).Value = "LITERATURA (VA DENTRO DE LENGUA)";
+                // FILA 14
+                hoja.Cell(14, 6).Value = "MATEMÁTICA";
                 hoja.Cell(14, 13).Value = "2DO CICLO";
 
-                hoja.Cell(15, 6).Value = "ORTOGRAFÍA (VA DENTRO DE LENGUA)";
+                // FILA 15
+                hoja.Cell(15, 6).Value = "TECNOLOGÍA";
                 hoja.Cell(15, 13).Value = "1ER Y 2DO CICLO";
 
-                hoja.Cell(16, 6).Value = "MATEMÁTICA";
+                // FILA 16
+                hoja.Cell(16, 6).Value = "GEOGRAFÍA";
                 hoja.Cell(16, 13).Value = "2DO CICLO Y 7°";
 
-                hoja.Cell(17, 6).Value = "TECNOLOGÍA";
+                // FILA 17
+                hoja.Cell(17, 6).Value = "LEGISLACIÓN";
 
-                hoja.Cell(18, 6).Value = "GEOGRAFÍA";
+                // FILA 18
+                hoja.Cell(18, 6).Value = "MATERIAL DIRECTIVO";
 
-                hoja.Cell(19, 6).Value = "LEGISLACIÓN";
+                // FILA 19
+                hoja.Cell(19, 6).Value = "MATERIAL EDUCATIVO";
 
-                hoja.Cell(20, 6).Value = "MATERIAL DIRECTIVO";
+                // FILA 20
+                hoja.Cell(20, 6).Value = "INTERÉS GENERAL";
 
-                hoja.Cell(21, 6).Value = "MATERIAL EDUCATIVO";
+                // FILA 21
+                hoja.Cell(21, 6).Value = "INTERÉS GENERAL";
 
-                hoja.Cell(22, 6).Value = "INTERÉS GENERAL";
+                // FILA 22
+                hoja.Cell(22, 6).Value = "ÁREAS INTEGRADAS";
 
-                hoja.Cell(23, 6).Value = "ÁREAS INTEGRADAS";
+                // FILA 23
+                hoja.Cell(23, 6).Value = "COMPUTACIÓN";
 
-                hoja.Cell(24, 6).Value = "COMPUTACIÓN";
 
                 // Ajuste de ancho de columnas automático
                 hoja.Columns().AdjustToContents();

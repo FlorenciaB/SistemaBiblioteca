@@ -49,9 +49,9 @@ namespace SistemaBiblioteca.Controllers
 
             ViewBag.Material = material;
             ViewBag.Grados = new List<string> {
-                "Nivel inicial", "1°", "2°", "3°", "4°", "5°", "6°", "7°",
-                "Avanzado", "Nivel Primario", "1er ciclo", "2do ciclo",
-                "1er y 2do ciclo", "2do ciclo y 7°"
+                "NIVEL INICIAL", "1°", "2°", "3°", "4°", "5°", "6°", "7°",
+                "AVANZADO", "NIVEL PRIMARIO", "1ER CICLO", "2DO CICLO",
+                "1ER Y 2DO CICLO", "2DO CICLO Y 7°"
             };
 
             return View(new Prestamo { MaterialBibliograficoId = materialId });
@@ -78,9 +78,9 @@ namespace SistemaBiblioteca.Controllers
                 ModelState.AddModelError("", "No hay ejemplares disponibles para prestar.");
                 ViewBag.Material = libro;
                 ViewBag.Grados = new List<string> {
-            "Nivel inicial", "1°", "2°", "3°", "4°", "5°", "6°", "7°",
-            "Avanzado", "Nivel Primario", "1er ciclo", "2do ciclo",
-            "1er y 2do ciclo", "2do ciclo y 7°"
+                    "NIVEL INICIAL", "1°", "2°", "3°", "4°", "5°", "6°", "7°",
+                    "AVANZADO", "NIVEL PRIMARIO", "1ER CICLO", "2DO CICLO",
+                    "1ER Y 2DO CICLO", "2DO CICLO Y 7°"
         };
                 return View(prestamo);
             }
